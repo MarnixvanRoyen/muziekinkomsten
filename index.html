@@ -14,7 +14,7 @@ html{color-scheme:light}body{margin:0}img{max-width:100%}
   --bg:#eef2ec; --surface:#ffffff; --surface-2:#f4f7f2; --ink:#10201a; --ink-2:#44544c; --muted:#6f7d75;
   --line:#dbe3d8; --line-2:#e8eee5; --focus:#0d6b3f;
   --hg:#0c5a36; --hg-deep:#08402a; --hy:#ffd21f; --hy-ink:#1a1400; --on-hg:#e9f3ec; --on-hg-2:#a9cbb6;
-  --sc:#eb6834; --lb:#2a78d6; --sc-soft:#fde6dc; --lb-soft:#e1ecfb; --yt:#d6312a; --yt-soft:#fbe2e0;
+  --sc:#eb6834; --lb:#2a78d6; --sc-soft:#fde6dc; --lb-soft:#e1ecfb; --yt:#d6312a; --yt-soft:#fbe2e0; --sp:#1a8f45; --sp-soft:#dcf3e4;
   --good:#12703f; --good-soft:#dff2e6; --warn:#8a5a00; --warn-soft:#fff3c4;
   --display:"Archivo","Arial Narrow",system-ui,sans-serif;
   --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -24,13 +24,13 @@ html{color-scheme:light}body{margin:0}img{max-width:100%}
   --bg:#0b120e; --surface:#121b16; --surface-2:#18231d; --ink:#eef4ef; --ink-2:#b4c2b9; --muted:#85958b;
   --line:#25332b; --line-2:#1d2923; --focus:#ffd21f;
   --hg:#0d4a2e; --hg-deep:#08301e; --hy:#ffd21f; --hy-ink:#1a1400; --on-hg:#e9f3ec; --on-hg-2:#93b7a1;
-  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42; --yt:#ef5046; --yt-soft:#3b1a18;
+  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42; --yt:#ef5046; --yt-soft:#3b1a18; --sp:#1ed760; --sp-soft:#15331f;
   --good:#5cc98c; --good-soft:#132a1d; --warn:#ffd21f; --warn-soft:#2c2710;}}
 :root[data-theme="dark"]{color-scheme:dark;
   --bg:#0b120e; --surface:#121b16; --surface-2:#18231d; --ink:#eef4ef; --ink-2:#b4c2b9; --muted:#85958b;
   --line:#25332b; --line-2:#1d2923; --focus:#ffd21f;
   --hg:#0d4a2e; --hg-deep:#08301e; --hy:#ffd21f; --hy-ink:#1a1400; --on-hg:#e9f3ec; --on-hg-2:#93b7a1;
-  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42; --yt:#ef5046; --yt-soft:#3b1a18;
+  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42; --yt:#ef5046; --yt-soft:#3b1a18; --sp:#1ed760; --sp-soft:#15331f;
   --good:#5cc98c; --good-soft:#132a1d; --warn:#ffd21f; --warn-soft:#2c2710;}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -85,6 +85,7 @@ button,input,select{font:inherit;color:inherit}
 .dot{width:9px;height:9px;border-radius:3px;display:inline-block;flex:none}
 .dot.sc{background:var(--sc)}.dot.lb{background:var(--lb)}.dot.yt{background:var(--yt)}
 .chip.yt{background:var(--yt-soft);color:var(--ink)}
+.dot.sp{background:var(--sp)}.chip.sp{background:var(--sp-soft);color:var(--ink)}
 .ytstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .ytstat{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px}
 .ytstat .k{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -252,6 +253,8 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
         <input id="fFile" type="file" accept=".csv,text/csv" hidden>
         <label class="btn yellow" for="fPdf" style="display:inline-flex;align-items:center;gap:6px"><i class="dot lb"></i>Label-PDF</label>
         <input id="fPdf" type="file" accept=".pdf,application/pdf" hidden>
+        <label class="btn yellow" for="fSp" style="display:inline-flex;align-items:center;gap:6px"><i class="dot sp"></i>Spotify-CSV</label>
+        <input id="fSp" type="file" accept=".csv,text/csv" hidden>
       </div></div>
   </section>
   <div id="notes" class="note" hidden></div>
@@ -264,6 +267,7 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
     <button role="tab" data-tab="landen" aria-selected="false">Per land</button>
     <button role="tab" data-tab="youtube" aria-selected="false">YouTube</button>
     <button role="tab" data-tab="sclive" aria-selected="false">SoundCloud live</button>
+    <button role="tab" data-tab="spotify" aria-selected="false">Spotify</button>
     <button role="tab" data-tab="kansen" aria-selected="false">Waar zit nog wat</button>
   </nav>
 
@@ -351,6 +355,30 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
     <div class="card">
       <div class="cardhead"><div><h2>Alle nummers</h2><p class="sub">Klik op een titel om hem op SoundCloud te openen</p></div></div>
       <div class="tablewrap"><table id="sclTable"></table></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-spotify" hidden>
+    <div class="card">
+      <div class="cardhead"><div><h2><i class="dot sp"></i> Spotify</h2><p class="sub" id="spSub">Uit je Spotify for Artists-export. De filters hierboven gelden hier niet.</p></div>
+        <label class="btn" for="fSp">Nieuwe export inladen</label></div>
+      <div class="ytstats" id="spStats"></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Meest gestreamd</h2><p class="sub">Totaal aantal streams sinds release</p><div class="bars" id="spTop"></div></div>
+      <div class="card"><h2>Groeiers</h2><p class="sub" id="spGrowSub">Streams erbij sinds de vorige import</p><div class="bars" id="spGrow"></div></div>
+    </div>
+    <div class="card">
+      <div class="cardhead"><div><h2>Van streams naar geld</h2><p class="sub" id="spMoneySub">Spotify-streams naast wat SoundCloud en DJ·World daarvoor afrekenen</p></div></div>
+      <div class="ytstats" id="spMoneyStats"></div>
+      <div id="spMoneyNote"></div>
+      <div class="tablewrap" style="margin-top:14px"><table id="spMoneyTable"></table></div>
+      <p class="sub" style="margin:12px 0 0">Spotify-geld komt 2–3 maanden later binnen, dus de nieuwste streams ontbreken altijd nog. Wijs met je muis een label aan voor uitleg.<br>
+      <span class="chip good">Klopt</span> 70% of meer afgerekend · <span class="chip warn">Loopt achter</span> minder dan 70% · <span class="chip warn">Spotify ontbreekt</span> SoundCloud betaalt dit nummer wel, maar niet voor Spotify · <span class="chip lb">Via label</span> DJ·World telt minstens zoveel streams (alle platforms samen) · <span class="chip warn">Label telt minder</span> DJ·World telt minder streams dan Spotify alleen · <span class="chip mute">Nog te vroeg</span> jonger dan 3 maanden · <span class="chip warn">Geen afrekening</span> nergens geld gevonden</p>
+    </div>
+    <div class="card">
+      <div class="cardhead"><div><h2>Alle nummers</h2><p class="sub">Stand van de laatste import</p></div></div>
+      <div class="tablewrap"><table id="spTable"></table></div>
     </div>
   </section>
 
@@ -628,6 +656,7 @@ function render(){
   if(state.tab==="kansen")renderInsights(d);
   if(state.tab==="youtube")renderYouTube();
   if(state.tab==="sclive")renderSCLive();
+  if(state.tab==="spotify")renderSpotify();
   $("srcInfo").textContent=`Uit Supabase: ${nf0.format(SC.length)} SoundCloud-regels${LAST_IMPORT?" (laatste import: "+LAST_IMPORT+")":""} · DJ·World-overzicht ${LABEL.generated?LABEL.generated:"nog niet ingeladen"}.`;
 }
 
@@ -646,7 +675,7 @@ function fillSelects(){
 }
 function syncSeg(id,val){$(id).querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===val))}
 function setTab(t){state.tab=t;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
-  ["overzicht","nummers","bronnen","landen","youtube","sclive","kansen"].forEach(x=>$("p-"+x).hidden=x!==t);saveState();render()}
+  ["overzicht","nummers","bronnen","landen","youtube","sclive","spotify","kansen"].forEach(x=>$("p-"+x).hidden=x!==t);saveState();render()}
 
 $("fFrom").addEventListener("change",e=>{state.from=e.target.value;if(state.to<state.from){state.to=state.from;$("fTo").value=state.to}render()});
 $("fTo").addEventListener("change",e=>{state.to=e.target.value;if(state.from>state.to){state.from=state.to;$("fFrom").value=state.from}render()});
@@ -1043,6 +1072,134 @@ $("sclRefresh").addEventListener("click",async()=>{
   showMsg(`SoundCloud bijgewerkt: ${data.tracks} nummers gemeten.`,true);
 });
 
+/* ---------- Spotify (CSV-export uit Spotify for Artists) ---------- */
+let SP={snaps:[],err:null};
+async function loadSP(){
+  try{let out=[],from=0;const size=1000;
+    for(;;){const {data,error}=await sb.from("sp_snapshots").select("snap_date,song,release_date,streams,listeners,saves,source_file")
+      .order("snap_date").order("song").range(from,from+size-1);
+      if(error)throw error;out=out.concat(data);if(data.length<size)break;from+=size}
+    SP={snaps:out,err:null};
+  }catch(e){SP={snaps:[],err:e.message}}
+}
+function spCompute(){
+  const dates=[...new Set(SP.snaps.map(s=>s.snap_date))].sort();
+  const last=dates[dates.length-1],prev=dates.length>1?dates[dates.length-2]:null;
+  const prevBy=new Map(SP.snaps.filter(s=>s.snap_date===prev).map(s=>[s.song,+s.streams||0]));
+  const today=last?new Date(last):new Date();
+  const cur=SP.snaps.filter(s=>s.snap_date===last);
+  const list=cur.map(s=>{const rel=s.release_date?String(s.release_date).slice(0,10):"";
+    const age=rel?Math.max(1,Math.round((today-new Date(rel))/864e5)):null;const streams=+s.streams||0;
+    return {title:s.song,rel,age,streams,listeners:+s.listeners||0,saves:+s.saves||0,
+      grow:prev?Math.max(0,streams-(prevBy.get(s.song)||0)):0,perDay:age?streams/age:null}});
+  return {dates,last,prev,list,file:(cur[0]||{}).source_file||""};
+}
+// Titels koppelen: eerst exact, daarna "titel bevat" — elke afrekening hoort bij maximaal één nummer
+function spMatch(list,map){
+  const keys=[...map.keys()].sort((a,b)=>b.length-a.length),used=new Set(),hit=new Map();
+  list.forEach(t=>{const k=tKey(t.title);if(map.has(k)&&!used.has(k)){used.add(k);hit.set(t,k)}});
+  list.forEach(t=>{if(hit.has(t))return;const tk=tKey(t.title);const k=keys.find(k=>!used.has(k)&&tk.includes(k));if(k){used.add(k);hit.set(t,k)}});
+  return t=>hit.has(t)?map.get(hit.get(t)):null;
+}
+const isSpotify=r=>/SPOTIFY/i.test(r.partner);
+function spMoney(y){
+  const scMap=new Map();
+  SC.forEach(r=>{const k=tKey(r.track);if(!k.trim())return;let o=scMap.get(k);if(!o){o={paid:0,usd:0,last:"",any:0};scMap.set(k,o)}
+    o.any+=r.usd;if(isSpotify(r)){o.paid+=r.units;o.usd+=r.usd;if(r.m>o.last)o.last=r.m}});
+  // label: "Original Mix"/"Radio Edit" e.d. niet meenemen in de titel, andere versies (bijv. Chilled) wel
+  const plain=v=>/^((original|extended|radio|club)\s*)?(mix|edit|version)?$/i.test(String(v||"").trim());
+  const lbMap=new Map();
+  LABEL.tracks.forEach(t=>{const k=tKey(t.t+(plain(t.v)?"":" "+t.v));if(!k.trim())return;
+    let o=lbMap.get(k);if(!o){o={streams:0,net:0,gross:0};lbMap.set(k,o)}o.streams+=t.sc;o.net+=t.net;o.gross+=t.gross});
+  const scOf=spMatch(y.list,scMap),lbOf=spMatch(y.list,lbMap);
+  return y.list.map(t=>{const sc=scOf(t),lb=lbOf(t);const o={...t,via:"",paid:0,usd:0,lbS:0,lbEur:0,last:""};
+    if(sc&&sc.paid>0){o.via="sc";o.paid=sc.paid;o.usd=sc.usd;o.last=sc.last}
+    else if(lb){o.via="lb";o.lbS=lb.streams;o.lbEur=state.basis==="net"?lb.net:lb.gross}
+    else if(sc&&sc.any>0)o.via="sc0";
+    return o});
+}
+function spStatus(o){
+  if(o.via==="sc"){const r=o.paid/(o.streams||1);
+    return r>=0.7?{c:"good",t:"Klopt",w:"Het grootste deel van de Spotify-streams komt terug in je SoundCloud-afrekening. Het verschil is vertraging: recente streams worden 2–3 maanden later afgerekend."}
+      :{c:"warn",t:"Loopt achter",w:"Minder dan 70% van de Spotify-streams is afgerekend. Bij een recente release is dat normaal (vertraging). Blijft het laag bij een volgend rapport, dan is het het uitzoeken waard."}}
+  if(o.via==="lb")return o.lbS>=o.streams*0.7?{c:"lb",t:"Via label",w:`DJ·World telt ${nf0.format(o.lbS)} streams voor dit nummer (alle platforms samen), Spotify alleen al ${nf0.format(o.streams)}. Dat past bij elkaar.`}
+      :{c:"warn",t:"Label telt minder",w:`DJ·World telt ${nf0.format(o.lbS)} streams (alle platforms samen), maar Spotify alleen al ${nf0.format(o.streams)}. Een deel kan vertraging zijn (nieuwste maanden nog niet verwerkt). Blijft het verschil groot, vraag het dan na bij DJ·World.`};
+  if(o.via==="sc0")return {c:"warn",t:"Spotify ontbreekt",w:"SoundCloud betaalt wel voor dit nummer (op andere platforms), maar er staat geen Spotify-regel voor in je rapport. Check in Repost of dit nummer via Repost naar Spotify is gegaan."};
+  if(o.age!=null&&o.age<90)return {c:"mute",t:"Nog te vroeg",w:"Minder dan 3 maanden oud: het geld is waarschijnlijk nog niet afgerekend."};
+  return {c:"warn",t:"Geen afrekening",w:"Streams op Spotify, maar nergens geld gevonden bij SoundCloud of DJ·World. Staat het nummer onder een andere titel in een rapport, of loopt het via een andere distributeur?"};
+}
+function renderSpotify(){
+  const clear=()=>["spTop","spGrow","spMoneyStats","spMoneyNote","spMoneyTable","spTable"].forEach(i=>$(i).innerHTML="");
+  if(SP.err){$("spStats").innerHTML=`<p class="sub">Spotify-cijfers ophalen lukte niet: ${esc(SP.err)}. Heb je 04_spotify.sql al gedraaid in Supabase?</p>`;clear();return}
+  const y=spCompute();
+  if(!y.last){$("spStats").innerHTML='<p class="sub">Nog geen Spotify-export ingeladen. Ga in Spotify for Artists naar Music → Songs, zet de periode op "All time", download de CSV en klik op "Spotify-CSV".</p>';clear();return}
+  const L=y.list,streams=L.reduce((a,t)=>a+t.streams,0),grow=L.reduce((a,t)=>a+t.grow,0);
+  const byS=[...L].sort((a,b)=>b.streams-a.streams),best=byS[0];
+  const fresh=L.filter(t=>t.age!=null&&t.age>=7&&t.age<=60&&t.perDay!=null).sort((a,b)=>b.perDay-a.perDay)[0];
+  $("spSub").textContent=`Stand van ${dLabel(y.last,1)}${y.file?" · "+y.file:""}. Spotify heeft geen koppeling: je werkt dit bij door af en toe een nieuwe export in te laden. De filters hierboven gelden hier niet.`;
+  $("spStats").innerHTML=`
+    <div class="ytstat"><span class="k">Streams totaal</span><span class="v">${nf0.format(streams)}</span><span class="s">${L.length} nummers, sinds release</span></div>
+    <div class="ytstat"><span class="k">Erbij</span><span class="v">${y.prev?"+"+nf0.format(grow):"—"}</span><span class="s">${y.prev?"sinds je import van "+dLabel(y.prev,1):"zie je na je volgende import"}</span></div>
+    <div class="ytstat"><span class="k">Best gestreamd</span><span class="v" style="font-size:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${best?esc(best.title):""}">${best?esc(best.title):"—"}</span><span class="s">${best?nf0.format(best.streams)+" streams · "+pct(best.streams/(streams||1))+" van alles":""}</span></div>
+    <div class="ytstat"><span class="k">Snelste nieuwe release</span><span class="v" style="font-size:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${fresh?esc(fresh.title):""}">${fresh?esc(fresh.title):"—"}</span><span class="s">${fresh?nf2.format(fresh.perDay)+" streams per dag sinds release ("+fresh.age+" dagen)":"geen release tussen 1 week en 60 dagen oud"}</span></div>`;
+  const top=byS.slice(0,10),mx=top[0]?top[0].streams:0;
+  $("spTop").innerHTML=top.map((t,i)=>bar(t.title,[{v:t.streams,c:"sp"}],mx,nf0.format(t.streams),null,i+1)).join("");
+  const gr=L.filter(t=>t.grow>0).sort((a,b)=>b.grow-a.grow).slice(0,10),mg=gr[0]?gr[0].grow:0;
+  $("spGrowSub").textContent=y.prev?`Streams erbij sinds ${dLabel(y.prev,1)}`:"Streams erbij sinds de vorige import";
+  $("spGrow").innerHTML=!y.prev?'<p class="sub">Laad over een paar weken opnieuw een export in; dan zie je hier welke nummers groeien.</p>':gr.length?gr.map((t,i)=>bar(t.title,[{v:t.grow,c:"sp"}],mg,"+"+nf0.format(t.grow),null,i+1)).join(""):'<p class="sub">Geen nieuwe streams sinds de vorige import.</p>';
+  // geld
+  const M=spMoney(y).sort((a,b)=>b.streams-a.streams);
+  const sc=M.filter(o=>o.via==="sc"),lb=M.filter(o=>o.via==="lb");
+  const scStreams=sc.reduce((a,o)=>a+o.streams,0),paid=sc.reduce((a,o)=>a+o.paid,0),usdT=sc.reduce((a,o)=>a+o.usd,0);
+  const lbSp=lb.reduce((a,o)=>a+o.streams,0),lbAll=lb.reduce((a,o)=>a+o.lbS,0),lbEur=lb.reduce((a,o)=>a+o.lbEur,0);
+  const lastM=M.reduce((a,o)=>o.last>a?o.last:a,"");
+  $("spMoneySub").textContent=`Spotify-streams op ${dLabel(y.last,1)} naast wat SoundCloud${lastM?" (t/m "+mLabel(lastM,1)+")":""} voor Spotify afrekent, en naast je DJ·World-overzicht${LABEL.generated?" van "+LABEL.generated:""}.`;
+  $("spMoneyStats").innerHTML=`
+    <div class="ytstat"><span class="k">Spotify-streams</span><span class="v">${nf0.format(streams)}</span><span class="s">volgens Spotify for Artists</span></div>
+    <div class="ytstat"><span class="k">Afgerekend via SoundCloud</span><span class="v">${nf0.format(paid)}</span><span class="s">${scStreams?pct(paid/scStreams)+" van de streams bij de "+sc.length+" nummers met Spotify-geld":"geen Spotify-regels gevonden"}</span></div>
+    <div class="ytstat"><span class="k">Verdiend via SoundCloud</span><span class="v">${eur(ex(usdT))}</span><span class="s">${paid?eur(ex(usdT)/paid*1000)+" per 1.000 afgerekende streams":""}</span></div>
+    <div class="ytstat"><span class="k">Via DJ·World</span><span class="v">${nf0.format(lbSp)}</span><span class="s">Spotify-streams bij ${lb.length} label-nummers · label telt ${nf0.format(lbAll)} streams op alle platforms</span></div>`;
+  const partners=[...new Set(SC.map(r=>r.partner).filter(Boolean))].sort();
+  $("spMoneyNote").innerHTML=SC.length&&!SC.some(isSpotify)?`<p class="note" style="margin:14px 0 0;background:var(--warn-soft)">In je SoundCloud-rapport staat geen enkele Spotify-regel. Partners die er wel in staan: ${partners.map(p=>esc(pName(p))).join(", ")}. Nummers die via SoundCloud/Repost lopen krijgen hieronder daarom "Spotify ontbreekt".</p>`:"";
+  $("spMoneyTable").innerHTML=`<thead><tr><th>Nummer</th><th>Via</th><th>Status</th><th class="n">Spotify</th><th class="n" title="SoundCloud: afgerekende Spotify-streams · DJ·World: streams op alle platforms samen">Afgerekend</th><th class="n">% terug</th><th class="n" title="SoundCloud: alleen Spotify · DJ·World: alle platforms samen">Verdiend</th><th>T/m</th></tr></thead><tbody>`+
+    M.map(o=>{const st=spStatus(o);const via=o.via==="lb"?'<span class="chip lb">DJ·World</span>':o.via?'<span class="chip sc">SoundCloud</span>':"—";
+      const af=o.via==="sc"?nf0.format(o.paid):o.via==="lb"?`<span title="alle platforms samen">${nf0.format(o.lbS)}*</span>`:"—";
+      const pc=o.via==="sc"&&o.streams?pct(o.paid/o.streams):"—";
+      const vd=o.via==="sc"?eur(ex(o.usd)):o.via==="lb"?`<span title="DJ·World, alle platforms samen">${eur(o.lbEur)}*</span>`:"—";
+      return `<tr><td><b>${esc(o.title)}</b></td><td>${via}</td><td><span class="chip ${st.c}" title="${esc(st.w)}">${st.t}</span></td>
+      <td class="n">${nf0.format(o.streams)}</td><td class="n">${af}</td><td class="n">${pc}</td><td class="n">${vd}</td>
+      <td class="mono" style="font-size:13px;white-space:nowrap">${o.last?mLabel(o.last):"—"}</td></tr>`}).join("")+
+    `</tbody><tfoot><tr><td>Totaal (${M.length})</td><td></td><td></td><td class="n">${nf0.format(streams)}</td><td></td><td></td><td class="n">${eur(ex(usdT)+lbEur)}</td><td></td></tr></tfoot>`+
+    `<caption style="caption-side:bottom;text-align:left;padding-top:8px" class="sub">* DJ·World geeft streams en geld per nummer voor alle platforms samen, niet alleen Spotify.</caption>`;
+  // alle nummers
+  const hasL=L.some(t=>t.listeners>0),hasS=L.some(t=>t.saves>0);
+  $("spTable").innerHTML=`<thead><tr><th>Nummer</th><th>Release</th><th class="n">Streams</th><th class="n">${y.prev?"Erbij":"—"}</th><th class="n" title="Streams gedeeld door het aantal dagen sinds release">Per dag</th>${hasL?'<th class="n">Luisteraars</th>':""}${hasS?'<th class="n">Saves</th>':""}</tr></thead><tbody>`+
+    byS.map(t=>`<tr><td><b>${esc(t.title)}</b></td><td class="mono" style="font-size:13px;white-space:nowrap">${t.rel?dLabel(t.rel,1):"—"}</td>
+      <td class="n"><b>${nf0.format(t.streams)}</b></td><td class="n">${y.prev?(t.grow>0?`<span class="up">+${nf0.format(t.grow)}</span>`:"0"):"—"}</td>
+      <td class="n">${t.perDay!=null?(t.perDay>=10?nf0.format(t.perDay):nf2.format(t.perDay)):"—"}</td>
+      ${hasL?`<td class="n">${nf0.format(t.listeners)}</td>`:""}${hasS?`<td class="n">${nf0.format(t.saves)}</td>`:""}</tr>`).join("")+
+    `</tbody><tfoot><tr><td>Totaal (${L.length})</td><td></td><td class="n">${nf0.format(streams)}</td><td class="n">${y.prev?"+"+nf0.format(grow):""}</td><td></td>${hasL?"<td></td>":""}${hasS?"<td></td>":""}</tr></tfoot>`;
+}
+$("fSp").addEventListener("change",async e=>{
+  const file=e.target.files[0];e.target.value="";if(!file)return;
+  const rows=parseCSV(await file.text());const hd=(rows[0]||[]).map(h=>h.trim().toLowerCase());
+  const ix=n=>hd.indexOf(n);
+  if(ix("song")<0||ix("streams")<0){showMsg("Dit lijkt geen Spotify-export. Kies in Spotify for Artists bij Music → Songs het download-icoontje.");return}
+  if(!/all/i.test(file.name)&&!confirm('Staat de periode van deze export op "All time"?\n\nAlleen dan kloppen de totalen en de groei tussen imports. Klik op Annuleren om eerst een nieuwe export te maken.'))return;
+  const g=(r,n)=>ix(n)<0?"":(r[ix(n)]||"").trim();
+  const num=v=>{const x=Number(String(v).replace(/[^\d.-]/g,""));return isFinite(x)?x:0};
+  const payload=rows.slice(1).filter(r=>g(r,"song")).map(r=>({song:g(r,"song"),
+    release_date:/^\d{4}-\d{2}-\d{2}/.test(g(r,"release_date"))?g(r,"release_date").slice(0,10):null,
+    streams:num(g(r,"streams")),listeners:ix("listeners")<0?null:num(g(r,"listeners")),saves:ix("saves")<0?null:num(g(r,"saves"))}));
+  if(!payload.length){showMsg("Geen nummers gevonden in dit bestand.");return}
+  const d=new Date(),snap=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  showMsg(`Bezig met opslaan van ${payload.length} nummers…`,true,true);
+  const {data,error}=await sb.rpc("import_spotify",{rows:payload,snap,file_name:file.name});
+  if(error){showMsg("Opslaan lukte niet: "+error.message+(/import_spotify|sp_snapshots/.test(error.message)?" — draai eerst 04_spotify.sql in Supabase.":""));return}
+  await loadSP();setTab("spotify");
+  showMsg(`${file.name} opgeslagen: ${data.inserted} nummers, stand van vandaag${data.deleted?" (eerdere import van vandaag vervangen)":""}.`,true);
+});
+
 /* ---------- Supabase ---------- */
 const CFG=window.MI_CONFIG||{};
 const configured=CFG.supabaseUrl&&/^https:\/\//.test(CFG.supabaseUrl)&&CFG.supabaseKey&&!/PLAK/.test(CFG.supabaseKey);
@@ -1067,7 +1224,7 @@ async function loadData(){
   LABEL={periods:lp.map(p=>({m:String(p.period_month).slice(0,7),name:p.name,gross:+p.gross,agg:+p.aggregator,djw:+p.djworld,net:+p.net,status:p.status||""})).sort((a,b)=>a.m<b.m?-1:1),
     tracks:lt.map(x=>({t:x.track,v:x.version||"",a:x.artist||"",sc:+x.stream_count||0,dc:+x.download_count||0,streams:+x.streams,downloads:+x.downloads,gross:+x.gross,net:+x.net})),
     generated:s?new Date(s.statement_date).toLocaleDateString("nl-NL"):null,paidOut:s?+s.paid_out:0,toBook:s?+s.to_book:0,outside:s?+s.outside_tool:0};
-  await Promise.all([loadYT(),loadSCL()]);
+  await Promise.all([loadYT(),loadSCL(),loadSP()]);
   fillSelects();setTab(state.tab);
   if(!SC.length&&!LABEL.periods.length)showMsg("Je database is nog leeg. Klik op 'SoundCloud-CSV' of 'Label-PDF' en kies je rapport.",false,true);
 }
