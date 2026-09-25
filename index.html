@@ -263,6 +263,7 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
     <button role="tab" data-tab="bronnen" aria-selected="false">Per bron</button>
     <button role="tab" data-tab="landen" aria-selected="false">Per land</button>
     <button role="tab" data-tab="youtube" aria-selected="false">YouTube</button>
+    <button role="tab" data-tab="sclive" aria-selected="false">SoundCloud live</button>
     <button role="tab" data-tab="kansen" aria-selected="false">Waar zit nog wat</button>
   </nav>
 
@@ -317,12 +318,39 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
       <div class="cardhead"><div><h2>YouTube vs. SoundCloud-afrekening</h2><p class="sub" id="cmpSub">Weergaven op YouTube naast wat SoundCloud daarvoor afrekent</p></div></div>
       <div class="ytstats" id="cmpStats"></div>
       <div class="tablewrap" style="margin-top:14px"><table id="cmpTable"></table></div>
-      <p class="sub" style="margin:12px 0 0">Waarom dit nooit 1-op-1 klopt: YouTube telt <b>alle</b> weergaven van vandaag; SoundCloud rekent alleen weergaven af waar YouTube voor betaalde (reclame of Premium), en dat 2–3 maanden later. Wijs met je muis een label aan voor uitleg.<br>
-      <span class="chip mute">Normaal</span> 10–100% komt terug · <span class="chip warn">Weinig terug</span> minder dan 10% · <span class="chip warn">Nog niets afgerekend</span> wel weergaven, geen geld · <span class="chip good">Meer dan je kanaal</span> ook gebruikt in video's van anderen · <span class="chip lb">Alleen elders</span> geld, maar geen video op je kanaal</p>
+      <p class="sub" style="margin:12px 0 0">SoundCloud rekent YouTube-weergaven 2–3 maanden later af, dus de nieuwste weergaven ontbreken nog. Wijs met je muis een label aan voor uitleg.<br>
+      <span class="chip good">Klopt</span> 70% of meer komt terug · <span class="chip warn">Loopt achter</span> minder dan 70% · <span class="chip good">Meer dan je kanaal</span> ook gebruikt in video's van anderen · <span class="chip lb">Via label</span> geld komt via DJ·World · <span class="chip warn">Niet via SoundCloud</span> weergaven, maar geen geld gevonden · <span class="chip mute">Geen video gevonden</span> geld, maar geen video op je kanaal</p>
     </div>
     <div class="card">
       <div class="cardhead"><div><h2>Alle tracks en video's</h2><p class="sub">Klik op een titel om hem op YouTube te openen</p></div></div>
       <div class="tablewrap"><table id="ytTable"></table></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-sclive" hidden>
+    <div class="card">
+      <div class="cardhead"><div><h2><i class="dot sc"></i> SoundCloud live</h2><p class="sub" id="sclSub">Openbare cijfers van je SoundCloud-profiel, elke nacht automatisch bijgewerkt. De filters hierboven gelden hier niet.</p></div>
+        <button class="btn" id="sclRefresh" type="button">Nu verversen</button></div>
+      <div class="ytstats" id="sclStats"></div>
+    </div>
+    <div class="card">
+      <div class="cardhead"><div><h2>Erbij per dag</h2><p class="sub">Hoeveel plays er per dag bij kwamen, alle nummers samen</p></div>
+        <div class="legend"><span><i class="dot sc"></i>Nieuwe plays</span></div></div>
+      <div class="chart" id="sclChart"></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Meest beluisterd</h2><p class="sub">Totaal aantal plays op SoundCloud</p><div class="bars" id="sclTop"></div></div>
+      <div class="card"><h2>Groeiers</h2><p class="sub" id="sclGrowSub">Plays erbij in de laatste 7 dagen</p><div class="bars" id="sclGrow"></div></div>
+    </div>
+    <div class="card">
+      <div class="cardhead"><div><h2>Van plays naar geld</h2><p class="sub" id="sclMoneySub">Openbare plays naast wat SoundCloud zelf daarvoor afrekent</p></div></div>
+      <div class="ytstats" id="sclMoneyStats"></div>
+      <div class="tablewrap" style="margin-top:14px"><table id="sclMoneyTable"></table></div>
+      <p class="sub" style="margin:12px 0 0">Alleen plays van betalende abonnees en plays met reclame worden betaald, en SoundCloud rekent 1–2 maanden later af. Een laag percentage is dus normaal; het verschil tussen nummers is het interessante deel.</p>
+    </div>
+    <div class="card">
+      <div class="cardhead"><div><h2>Alle nummers</h2><p class="sub">Klik op een titel om hem op SoundCloud te openen</p></div></div>
+      <div class="tablewrap"><table id="sclTable"></table></div>
     </div>
   </section>
 
@@ -599,6 +627,7 @@ function render(){
   if(state.tab==="landen")renderCountries(d);
   if(state.tab==="kansen")renderInsights(d);
   if(state.tab==="youtube")renderYouTube();
+  if(state.tab==="sclive")renderSCLive();
   $("srcInfo").textContent=`Uit Supabase: ${nf0.format(SC.length)} SoundCloud-regels${LAST_IMPORT?" (laatste import: "+LAST_IMPORT+")":""} · DJ·World-overzicht ${LABEL.generated?LABEL.generated:"nog niet ingeladen"}.`;
 }
 
@@ -617,7 +646,7 @@ function fillSelects(){
 }
 function syncSeg(id,val){$(id).querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===val))}
 function setTab(t){state.tab=t;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
-  ["overzicht","nummers","bronnen","landen","youtube","kansen"].forEach(x=>$("p-"+x).hidden=x!==t);saveState();render()}
+  ["overzicht","nummers","bronnen","landen","youtube","sclive","kansen"].forEach(x=>$("p-"+x).hidden=x!==t);saveState();render()}
 
 $("fFrom").addEventListener("change",e=>{state.from=e.target.value;if(state.to<state.from){state.to=state.from;$("fTo").value=state.to}render()});
 $("fTo").addEventListener("change",e=>{state.to=e.target.value;if(state.from>state.to){state.from=state.to;$("fFrom").value=state.from}render()});
@@ -662,7 +691,7 @@ $("fFile").addEventListener("change",async e=>{
 let msgT;function showMsg(t,good,sticky){clearTimeout(msgT);const n=$("notes");n.innerHTML=esc(t);n.hidden=false;n.style.background=good?"var(--good-soft)":"var(--warn-soft)";if(!sticky)msgT=setTimeout(()=>{n.style.background="";renderNotes()},good?6000:12000)}
 
 /* init */
-let rsz;addEventListener("resize",()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(state.tab==="overzicht")renderChart(compute());if(state.tab==="youtube")renderYouTube()},150)});
+let rsz;addEventListener("resize",()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(state.tab==="overzicht")renderChart(compute());if(state.tab==="youtube")renderYouTube();if(state.tab==="sclive")renderSCLive()},150)});
 
 /* ---------- DJ·World totaaloverzicht (PDF) uitlezen ---------- */
 async function pdfLines(pdfjs,data){
@@ -844,29 +873,32 @@ function ytCompare(y){
     let o=map.get(k);if(!o){o={title:r.track.replace(/\s*[\(\[].*$/,"")||r.track,paid:0,other:0,usd:0,last:"",views:0,nv:0};map.set(k,o)}
     o.paid+=r.units;if(!art(r))o.other+=r.units;o.usd+=r.usd;if(r.m>o.last)o.last=r.m});
   const keys=[...map.keys()].sort((a,b)=>b.length-a.length); // langste eerst: "deep summer soul" gaat voor "soul"
+  const labelKeys=LABEL.tracks.map(t=>tKey(t.t)).filter(k=>k.trim());
   const loose=new Map();
   y.vids.forEach(v=>{const vk=tKey(v.title);const k=keys.find(k=>vk.includes(k));
     if(k){const o=map.get(k);o.views+=v.views;o.nv++;return}
-    let o=loose.get(vk);if(!o){o={title:v.title,paid:0,other:0,usd:0,last:"",views:0,nv:0};loose.set(vk,o)}o.views+=v.views;o.nv++});
+    let o=loose.get(vk);if(!o){o={title:v.title,paid:0,other:0,usd:0,last:"",views:0,nv:0,label:labelKeys.some(k=>vk.includes(k))};loose.set(vk,o)}o.views+=v.views;o.nv++});
   return [...map.values(),...loose.values()];
 }
 function cmpStatus(o){
-  if(!o.paid)return {c:"warn",t:"Nog niets afgerekend",w:"Wel weergaven, nog geen geld via SoundCloud. Nieuw nummer? Dan komt het meestal na 2–3 maanden. Zo niet: check of dit nummer via SoundCloud/Repost wordt verspreid (en dus Content ID heeft)."};
-  if(!o.views)return {c:"lb",t:"Alleen elders",w:"SoundCloud rekent YouTube-weergaven af, maar er staat geen video met deze titel op je kanaal. Waarschijnlijk gebruiken anderen dit nummer in hun video (Content ID), of de titel wijkt af."};
+  if(!o.paid&&o.label)return {c:"lb",t:"Via label",w:"Dit nummer staat in je DJ·World-overzicht. Het YouTube-geld komt dan via het label, niet via SoundCloud."};
+  if(!o.paid)return {c:"warn",t:"Niet via SoundCloud",w:"Wel weergaven, maar geen YouTube-geld via SoundCloud en niet gevonden bij het label. Loopt dit nummer via een andere distributeur? Zo niet: check in Repost of dit nummer is aangemeld en Content ID aan staat."};
+  if(!o.views)return {c:"mute",t:"Geen video gevonden",w:"SoundCloud rekent YouTube-weergaven af, maar er staat geen video met deze titel op de gevolgde kanalen. Waarschijnlijk onder een andere artiestnaam (ander Topic-kanaal), of gebruikt in video's van anderen."};
   const r=o.paid/o.views;
-  if(r>1)return {c:"good",t:"Meer dan je kanaal",w:"Er wordt meer afgerekend dan je kanaal aan weergaven laat zien: het nummer wordt ook in video's van anderen gebruikt (Content ID). Goed teken!"};
-  if(r<0.1&&o.views>=50)return {c:"warn",t:"Weinig terug",w:"Minder dan 10% van de weergaven komt terug in de afrekening. Kan komen door recente groei (vertraging), veel weergaven zonder reclame, of een eigen video die niet geclaimd wordt."};
-  return {c:"mute",t:"Normaal",w:"Een deel van de weergaven levert geld op: dat is normaal, want niet elke weergave heeft reclame of Premium."};
+  if(r>1.1)return {c:"good",t:"Meer dan je kanaal",w:"Er wordt meer afgerekend dan je kanaal aan weergaven laat zien: het nummer wordt ook in video's van anderen gebruikt (Content ID)."};
+  if(r>=0.7)return {c:"good",t:"Klopt",w:"Vrijwel alle weergaven komen terug in de afrekening. Het kleine verschil is vertraging: recente weergaven worden 2–3 maanden later afgerekend."};
+  return {c:"warn",t:"Loopt achter",w:"Minder dan 70% komt terug. Meestal zijn dit recente weergaven die nog niet zijn afgerekend (kijk naar 'T/m'). Blijft het laag bij een volgend rapport, dan is het het uitzoeken waard."};
 }
 function renderYtCompare(y){
   const rows=ytCompare(y).filter(o=>o.views||o.paid).sort((a,b)=>b.views-a.views||b.paid-a.paid);
   const views=rows.reduce((a,o)=>a+o.views,0),paid=rows.reduce((a,o)=>a+o.paid,0),other=rows.reduce((a,o)=>a+o.other,0),usdT=rows.reduce((a,o)=>a+o.usd,0);
   const last=rows.reduce((a,o)=>o.last>a?o.last:a,"");
+  const both=rows.filter(o=>o.views&&o.paid),bV=both.reduce((a,o)=>a+o.views,0),bP=both.reduce((a,o)=>a+o.paid,0);
   if(!paid){$("cmpStats").innerHTML='<p class="sub">Nog geen YouTube-regels in je SoundCloud-rapport gevonden. Laad een nieuwere SoundCloud-CSV in.</p>';$("cmpTable").innerHTML="";return}
   $("cmpSub").textContent=`YouTube-weergaven op ${dLabel(y.last,1)} naast alles wat SoundCloud t/m ${mLabel(last,1)} voor YouTube heeft afgerekend. De filters hierboven gelden hier niet.`;
   $("cmpStats").innerHTML=`
     <div class="ytstat"><span class="k">Weergaven nu</span><span class="v">${nf0.format(views)}</span><span class="s">openbaar, op je kanaal</span></div>
-    <div class="ytstat"><span class="k">Afgerekend</span><span class="v">${nf0.format(paid)}</span><span class="s">${views?pct(paid/views)+" van de weergaven":""}${other?` · ${nf0.format(other)} via anderen`:""}</span></div>
+    <div class="ytstat"><span class="k">Afgerekend</span><span class="v">${nf0.format(paid)}</span><span class="s">${bV?pct(bP/bV)+" terug bij de "+both.length+" nummers die in beide staan":""}${other?` · ${nf0.format(other)} via anderen`:""}</span></div>
     <div class="ytstat"><span class="k">Verdiend via YouTube</span><span class="v">${eur(ex(usdT))}</span><span class="s">t/m ${mLabel(last,1)}</span></div>
     <div class="ytstat"><span class="k">Per 1.000 weergaven</span><span class="v">${views?eur(ex(usdT)/views*1000):"—"}</span><span class="s">wat een weergave je ongeveer oplevert</span></div>`;
   $("cmpTable").innerHTML=`<thead><tr><th>Nummer</th><th>Status</th><th class="n">YouTube</th><th class="n">Afgerekend</th><th class="n" title="Afgerekend via video's van anderen (Content ID)">Via anderen</th><th class="n">% terug</th><th class="n">Verdiend</th><th class="n" title="Verdiend per 1.000 afgerekende weergaven">€/1.000</th><th>T/m</th></tr></thead><tbody>`+
@@ -886,6 +918,129 @@ $("ytRefresh").addEventListener("click",async()=>{
   if(error){showMsg("Verversen lukte niet: "+error.message);return}
   await loadYT();renderYouTube();
   showMsg(`YouTube bijgewerkt: ${data.videos} tracks en video's gemeten.${data.fouten&&data.fouten.length?" Let op: "+data.fouten.join("; "):""}`,!(data.fouten&&data.fouten.length));
+});
+
+/* ---------- SoundCloud live ---------- */
+let SCL={tracks:[],snaps:[],err:null};
+async function loadSCL(){
+  try{
+    const since=new Date(Date.now()-400*864e5).toISOString().slice(0,10);
+    const tr=await sb.from("sc_tracks").select("track_id,title,permalink_url,created_at");
+    if(tr.error)throw tr.error;
+    let snaps=[],from=0;const size=1000;
+    for(;;){const {data,error}=await sb.from("sc_snapshots").select("track_id,snap_date,plays,likes,reposts,comments,downloads")
+      .gte("snap_date",since).order("snap_date").order("track_id").range(from,from+size-1);
+      if(error)throw error;snaps=snaps.concat(data);if(data.length<size)break;from+=size}
+    SCL={tracks:tr.data,snaps,err:null};
+  }catch(e){SCL={tracks:[],snaps:[],err:e.message}}
+}
+function sclCompute(){
+  const dates=[...new Set(SCL.snaps.map(s=>s.snap_date))].sort();
+  const last=dates[dates.length-1];
+  const cut=last?new Date(new Date(last).getTime()-7*864e5).toISOString().slice(0,10):null;
+  const baseCands=dates.filter(d=>d<=cut);
+  const base=baseCands.length?baseCands[baseCands.length-1]:dates[0];
+  const by=new Map();SCL.snaps.forEach(s=>{let m=by.get(s.track_id);if(!m){m={};by.set(s.track_id,m)}m[s.snap_date]=s});
+  const today=last?new Date(last):new Date();
+  const list=SCL.tracks.map(t=>{const m=by.get(t.track_id)||{};const cur=m[last];
+    const ds=Object.keys(m).sort();const b=m[base]||m[ds.find(d=>d>=base)]||cur;
+    const up=t.created_at?String(t.created_at).slice(0,10):"";
+    const age=up?Math.max(1,Math.round((today-new Date(up))/864e5)):null;
+    const plays=cur&&cur.plays!=null?+cur.plays:null;
+    return {id:t.track_id,title:t.title,url:t.permalink_url,up,age,plays,
+      likes:cur?+cur.likes||0:0,reposts:cur?+cur.reposts||0:0,comments:cur?+cur.comments||0:0,downloads:cur?+cur.downloads||0:0,
+      grow:cur&&b&&plays!=null&&b.plays!=null?plays-(+b.plays):0,perDay:plays!=null&&age?plays/age:null}}).filter(t=>t.plays!=null||t.up);
+  const daily=dates.map(d=>{const tot=SCL.snaps.filter(s=>s.snap_date===d).reduce((a,s)=>a+(+s.plays||0),0);return {d,tot}});
+  daily.forEach((o,i)=>o.add=i?Math.max(0,o.tot-daily[i-1].tot):null);
+  return {dates,last,base,list,daily,multiDay:dates.length>1};
+}
+// SoundCloud-afrekening (partner SOUNDCLOUD) per nummer koppelen aan de openbare plays
+function sclMoney(y){
+  const map=new Map();
+  SC.filter(r=>r.partner==="SOUNDCLOUD").forEach(r=>{const k=tKey(r.track);if(!k.trim())return;
+    let o=map.get(k);if(!o){o={paid:0,usd:0,last:""};map.set(k,o)}o.paid+=r.units;o.usd+=r.usd;if(r.m>o.last)o.last=r.m});
+  const keys=[...map.keys()].sort((a,b)=>b.length-a.length);
+  // eerst exacte titels, daarna "titel bevat" — elke afrekening hoort bij maximaal één nummer
+  const used=new Set(),hit=new Map();
+  y.list.forEach(t=>{const tk=tKey(t.title);if(map.has(tk)&&!used.has(tk)){used.add(tk);hit.set(t.id,tk)}});
+  y.list.forEach(t=>{if(hit.has(t.id))return;const tk=tKey(t.title);const k=keys.find(k=>!used.has(k)&&tk.includes(k));if(k){used.add(k);hit.set(t.id,k)}});
+  return y.list.map(t=>{const o=hit.has(t.id)?map.get(hit.get(t.id)):null;
+    return {...t,paid:o?o.paid:0,usd:o?o.usd:0,last:o?o.last:""}});
+}
+function renderSCLive(){
+  const clear=()=>["sclChart","sclTop","sclGrow","sclTable","sclMoneyStats","sclMoneyTable"].forEach(i=>$(i).innerHTML="");
+  if(SCL.err){$("sclStats").innerHTML=`<p class="sub">SoundCloud-cijfers ophalen lukte niet: ${esc(SCL.err)}</p>`;clear();return}
+  const y=sclCompute();
+  if(!y.last){$("sclStats").innerHTML='<p class="sub">Nog geen metingen. Klik op "Nu verversen".</p>';clear();return}
+  const L=y.list,plays=L.reduce((a,t)=>a+(t.plays||0),0),likes=L.reduce((a,t)=>a+t.likes,0),reposts=L.reduce((a,t)=>a+t.reposts,0),
+    comments=L.reduce((a,t)=>a+t.comments,0),grow=L.reduce((a,t)=>a+t.grow,0);
+  const days=Math.round((new Date(y.last)-new Date(y.base))/864e5);
+  const byPlays=[...L].sort((a,b)=>(b.plays||0)-(a.plays||0));
+  const best=byPlays[0];
+  const fresh=L.filter(t=>t.age!=null&&t.age<=60&&t.perDay!=null).sort((a,b)=>b.perDay-a.perDay)[0];
+  $("sclSub").textContent=`Openbare cijfers van je SoundCloud-profiel, elke nacht automatisch bijgewerkt · laatste meting ${dLabel(y.last,1)}. De filters hierboven gelden hier niet.`;
+  $("sclStats").innerHTML=`
+    <div class="ytstat"><span class="k">Plays totaal</span><span class="v">${nf0.format(plays)}</span><span class="s">${L.length} openbare nummers</span></div>
+    <div class="ytstat"><span class="k">Erbij ${y.multiDay?(days>=7?"laatste 7 dagen":"sinds "+dLabel(y.base)):""}</span><span class="v">${y.multiDay?"+"+nf0.format(grow):"—"}</span><span class="s">${y.multiDay?(days?nf0.format(grow/days)+" per dag gemiddeld":""):"vanaf morgen te zien"}</span></div>
+    <div class="ytstat"><span class="k">Best beluisterd</span><span class="v" style="font-size:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${best?esc(best.title):""}">${best?esc(best.title):"—"}</span><span class="s">${best?nf0.format(best.plays||0)+" plays · "+pct((best.plays||0)/(plays||1))+" van alles":""}</span></div>
+    <div class="ytstat"><span class="k">Snelste nieuwe release</span><span class="v" style="font-size:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${fresh?esc(fresh.title):""}">${fresh?esc(fresh.title):"—"}</span><span class="s">${fresh?nf0.format(fresh.perDay)+" plays per dag sinds upload ("+fresh.age+" dagen)":"geen release in de laatste 60 dagen"}</span></div>
+    <div class="ytstat"><span class="k">Likes</span><span class="v">${nf0.format(likes)}</span><span class="s">${nf0.format(reposts)} reposts · ${nf0.format(comments)} reacties</span></div>`;
+  const pts=y.daily.filter(o=>o.add!=null);
+  if(pts.length<1){$("sclChart").innerHTML='<p class="sub" style="margin:0">Na de tweede meting (vannacht) zie je hier per dag hoeveel plays erbij kwamen.</p>'}
+  else{
+    const W=Math.max(300,Math.round($("sclChart").clientWidth||1000)),H=W<600?200:240,ml=46,mr=8,mt=12,mb=30,iw=W-ml-mr,ih=H-mt-mb;
+    const n=pts.length,max=niceMax(Math.max(1,...pts.map(o=>o.add))),yy=v=>mt+ih-v/max*ih,bw=iw/n,bar=Math.max(2,Math.min(36,bw*0.66));
+    let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Nieuwe SoundCloud-plays per dag">`;
+    for(let i=0;i<=4;i++){const v=max*i/4,t=yy(v);s+=`<line class="${i?"grid":"base"}" x1="${ml}" x2="${W-mr}" y1="${t}" y2="${t}"/><text x="${ml-8}" y="${t+4}" text-anchor="end">${v>=10||Number.isInteger(v)?nf0.format(v):nf2.format(v)}</text>`}
+    const every=Math.ceil(n/(W<600?6:12));
+    pts.forEach((o,i)=>{const x=ml+bw*i+(bw-bar)/2,h=o.add/max*ih;
+      if(h>0)s+=`<path fill="var(--sc)" d="${roundTop(x,yy(o.add),bar,h,Math.min(4,h))}"/>`;
+      if(i%every===0||i===n-1)s+=`<text x="${ml+bw*i+bw/2}" y="${H-10}" text-anchor="middle">${dLabel(o.d)}</text>`;
+      s+=`<rect class="hit" data-i="${i}" x="${ml+bw*i}" y="${mt}" width="${bw}" height="${ih}"/>`});
+    $("sclChart").innerHTML=s+"</svg>";
+    $("sclChart").querySelectorAll(".hit").forEach(r=>{r.addEventListener("mousemove",e=>{const o=pts[+r.dataset.i];
+      showTip(e,`<div class="t">${dLabel(o.d,1)}</div><div class="r"><span><i class="dot sc"></i>Erbij</span><b class="num">+${nf0.format(o.add)}</b></div><div class="r"><span>Totaal</span><b class="num">${nf0.format(o.tot)}</b></div>`)});
+      r.addEventListener("mouseleave",hideTip)});
+  }
+  const top=byPlays.slice(0,10),mx=top[0]?top[0].plays||0:0;
+  $("sclTop").innerHTML=top.map((t,i)=>bar(t.title,[{v:t.plays||0,c:"sc"}],mx,nf0.format(t.plays||0),null,i+1)).join("");
+  const gr=L.filter(t=>t.grow>0).sort((a,b)=>b.grow-a.grow).slice(0,10),mg=gr[0]?gr[0].grow:0;
+  $("sclGrowSub").textContent=y.multiDay?(days>=7?"Plays erbij in de laatste 7 dagen":`Plays erbij sinds ${dLabel(y.base,1)}`):"Plays erbij, per nummer";
+  $("sclGrow").innerHTML=!y.multiDay?'<p class="sub">Vanaf de tweede meting (vannacht) zie je hier welke nummers groeien.</p>':gr.length?gr.map((t,i)=>bar(t.title,[{v:t.grow,c:"sc"}],mg,"+"+nf0.format(t.grow),null,i+1)).join(""):'<p class="sub">Nog geen nieuwe plays in deze periode.</p>';
+  const mRows=sclMoney(y).sort((a,b)=>(b.plays||0)-(a.plays||0));
+  const paid=mRows.reduce((a,t)=>a+t.paid,0),usdT=mRows.reduce((a,t)=>a+t.usd,0),lastM=mRows.reduce((a,t)=>t.last>a?t.last:a,"");
+  const withPay=mRows.filter(t=>t.paid>0),pPlays=withPay.reduce((a,t)=>a+(t.plays||0),0);
+  if(!SC.some(r=>r.partner==="SOUNDCLOUD")){$("sclMoneyStats").innerHTML='<p class="sub">Nog geen SoundCloud-regels in je rapport gevonden. Laad een SoundCloud-CSV in.</p>';$("sclMoneyTable").innerHTML=""}
+  else{
+    $("sclMoneySub").textContent=`Plays op ${dLabel(y.last,1)} naast wat SoundCloud${lastM?" t/m "+mLabel(lastM,1):""} voor plays óp SoundCloud heeft betaald (andere platforms tellen hier niet mee).`;
+    $("sclMoneyStats").innerHTML=`
+      <div class="ytstat"><span class="k">Plays nu</span><span class="v">${nf0.format(plays)}</span><span class="s">openbaar, op je profiel</span></div>
+      <div class="ytstat"><span class="k">Betaalde plays</span><span class="v">${nf0.format(paid)}</span><span class="s">${pPlays?pct(paid/pPlays)+" van de plays bij de "+withPay.length+" nummers met geld":""}</span></div>
+      <div class="ytstat"><span class="k">Verdiend op SoundCloud</span><span class="v">${eur(ex(usdT))}</span><span class="s">${lastM?"t/m "+mLabel(lastM,1):""}</span></div>
+      <div class="ytstat"><span class="k">Per 1.000 plays</span><span class="v">${pPlays?eur(ex(usdT)/pPlays*1000):"—"}</span><span class="s">wat een play je gemiddeld oplevert</span></div>`;
+    $("sclMoneyTable").innerHTML=`<thead><tr><th>Nummer</th><th class="n">Plays</th><th class="n">Betaald</th><th class="n">% betaald</th><th class="n">Verdiend</th><th class="n" title="Verdiend per 1.000 openbare plays">€/1.000 plays</th><th>T/m</th></tr></thead><tbody>`+
+      mRows.map(t=>`<tr><td><b>${esc(t.title)}</b></td><td class="n">${t.plays!=null?nf0.format(t.plays):"—"}</td>
+        <td class="n">${t.paid?nf0.format(t.paid):'<span class="chip mute" title="Geen SoundCloud-afrekening gevonden voor deze titel. Nieuw nummer (nog niet afgerekend), andere titel in het rapport, of niet via Repost gemonetiseerd.">geen</span>'}</td>
+        <td class="n">${t.paid&&t.plays?pct(t.paid/t.plays):"—"}</td><td class="n">${t.usd?eur(ex(t.usd)):"—"}</td>
+        <td class="n">${t.usd&&t.plays>=100?eur(ex(t.usd)/t.plays*1000):"—"}</td>
+        <td class="mono" style="font-size:13px;white-space:nowrap">${t.last?mLabel(t.last):"—"}</td></tr>`).join("")+
+      `</tbody><tfoot><tr><td>Totaal (${mRows.length})</td><td class="n">${nf0.format(plays)}</td><td class="n">${nf0.format(paid)}</td><td class="n">${pPlays?pct(paid/pPlays):""}</td><td class="n">${eur(ex(usdT))}</td><td class="n">${pPlays?eur(ex(usdT)/pPlays*1000):""}</td><td></td></tr></tfoot>`;
+  }
+  $("sclTable").innerHTML=`<thead><tr><th>Titel</th><th>Geüpload</th><th class="n">Plays</th><th class="n">${y.multiDay?"Erbij":"—"}</th><th class="n" title="Plays gedeeld door het aantal dagen sinds upload">Per dag</th><th class="n">Likes</th><th class="n">Reposts</th><th class="n">Reacties</th><th class="n">Downloads</th></tr></thead><tbody>`+
+    byPlays.map(t=>`<tr><td>${t.url?`<a href="${esc(t.url)}" target="_blank" rel="noopener"><b>${esc(t.title)}</b></a>`:`<b>${esc(t.title)}</b>`}</td>
+      <td class="mono" style="font-size:13px;white-space:nowrap">${t.up?dLabel(t.up,1):"—"}</td>
+      <td class="n"><b>${t.plays!=null?nf0.format(t.plays):"—"}</b></td><td class="n">${y.multiDay?(t.grow>0?`<span class="up">+${nf0.format(t.grow)}</span>`:"0"):"—"}</td>
+      <td class="n">${t.perDay!=null?(t.perDay>=10?nf0.format(t.perDay):nf2.format(t.perDay)):"—"}</td>
+      <td class="n">${nf0.format(t.likes)}</td><td class="n">${nf0.format(t.reposts)}</td><td class="n">${nf0.format(t.comments)}</td><td class="n">${nf0.format(t.downloads)}</td></tr>`).join("")+
+    `</tbody><tfoot><tr><td>Totaal (${L.length})</td><td></td><td class="n">${nf0.format(plays)}</td><td class="n">${y.multiDay?"+"+nf0.format(grow):""}</td><td></td><td class="n">${nf0.format(likes)}</td><td class="n">${nf0.format(reposts)}</td><td class="n">${nf0.format(comments)}</td><td class="n">${nf0.format(L.reduce((a,t)=>a+t.downloads,0))}</td></tr></tfoot>`;
+}
+$("sclRefresh").addEventListener("click",async()=>{
+  const b=$("sclRefresh");b.disabled=true;b.textContent="Bezig…";
+  const {data,error}=await sb.rpc("sc_refresh");
+  b.disabled=false;b.textContent="Nu verversen";
+  if(error){showMsg("Verversen lukte niet: "+error.message);return}
+  await loadSCL();renderSCLive();
+  showMsg(`SoundCloud bijgewerkt: ${data.tracks} nummers gemeten.`,true);
 });
 
 /* ---------- Supabase ---------- */
@@ -912,7 +1067,7 @@ async function loadData(){
   LABEL={periods:lp.map(p=>({m:String(p.period_month).slice(0,7),name:p.name,gross:+p.gross,agg:+p.aggregator,djw:+p.djworld,net:+p.net,status:p.status||""})).sort((a,b)=>a.m<b.m?-1:1),
     tracks:lt.map(x=>({t:x.track,v:x.version||"",a:x.artist||"",sc:+x.stream_count||0,dc:+x.download_count||0,streams:+x.streams,downloads:+x.downloads,gross:+x.gross,net:+x.net})),
     generated:s?new Date(s.statement_date).toLocaleDateString("nl-NL"):null,paidOut:s?+s.paid_out:0,toBook:s?+s.to_book:0,outside:s?+s.outside_tool:0};
-  await loadYT();
+  await Promise.all([loadYT(),loadSCL()]);
   fillSelects();setTab(state.tab);
   if(!SC.length&&!LABEL.periods.length)showMsg("Je database is nog leeg. Klik op 'SoundCloud-CSV' of 'Label-PDF' en kies je rapport.",false,true);
 }
