@@ -92,6 +92,7 @@ button,input,select{font:inherit;color:inherit}
 .ytstat .v{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums;font-stretch:75%;font-variation-settings:"wdth" 75}
 .ytstat .s{font-size:12.5px;color:var(--muted)}
 .up{color:var(--good);font-weight:700}
+.grens{display:inline-block;width:70px;height:7px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);vertical-align:middle;margin-right:8px;overflow:hidden}.grens i{display:block;height:100%;background:var(--sp)}
 td a{color:inherit;text-decoration-color:var(--line)}td a:hover{text-decoration-color:var(--yt)}
 .spacer{flex:1}
 .btn{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 12px;min-height:38px;cursor:pointer;font-weight:600;font-size:14px}
@@ -374,7 +375,7 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
       <div id="spMoneyNote"></div>
       <div class="tablewrap" style="margin-top:14px"><table id="spMoneyTable"></table></div>
       <p class="sub" style="margin:12px 0 0">Spotify-geld komt 2–3 maanden later binnen, dus de nieuwste streams ontbreken altijd nog. Wijs met je muis een label aan voor uitleg.<br>
-      <span class="chip good">Klopt</span> 70% of meer afgerekend · <span class="chip warn">Loopt achter</span> minder dan 70% · <span class="chip warn">Spotify ontbreekt</span> SoundCloud betaalt dit nummer wel, maar niet voor Spotify · <span class="chip lb">Via label</span> DJ·World telt minstens zoveel streams (alle platforms samen) · <span class="chip warn">Label telt minder</span> DJ·World telt minder streams dan Spotify alleen · <span class="chip mute">Nog te vroeg</span> jonger dan 3 maanden · <span class="chip warn">Geen afrekening</span> nergens geld gevonden</p>
+      <span class="chip good">Klopt</span> 70% of meer afgerekend · <span class="chip warn">Loopt achter</span> minder dan 70% · <span class="chip mute">Onder 1.000-grens</span> Spotify betaalt pas vanaf 1.000 streams per nummer in 12 maanden · <span class="chip warn">Spotify ontbreekt</span> boven de grens, maar geen Spotify-geld via SoundCloud · <span class="chip lb">Via label</span> DJ·World telt minstens zoveel streams (alle platforms samen) · <span class="chip warn">Label telt minder</span> DJ·World telt minder streams dan Spotify alleen · <span class="chip mute">Nog te vroeg</span> jonger dan 3 maanden · <span class="chip warn">Geen afrekening</span> nergens geld gevonden</p>
     </div>
     <div class="card">
       <div class="cardhead"><div><h2>Alle nummers</h2><p class="sub">Stand van de laatste import</p></div></div>
@@ -1088,11 +1089,23 @@ function spCompute(){
   const prevBy=new Map(SP.snaps.filter(s=>s.snap_date===prev).map(s=>[s.song,+s.streams||0]));
   const today=last?new Date(last):new Date();
   const cur=SP.snaps.filter(s=>s.snap_date===last);
+  const yearAgo=last?new Date(new Date(last).getTime()-365*864e5).toISOString().slice(0,10):null;
+  const old=dates.filter(d=>d<=yearAgo).pop()||null;
+  const oldBy=new Map(SP.snaps.filter(s=>s.snap_date===old).map(s=>[s.song,+s.streams||0]));
+  const days=prev?Math.max(1,Math.round((new Date(last)-new Date(prev))/864e5)):null;
   const list=cur.map(s=>{const rel=s.release_date?String(s.release_date).slice(0,10):"";
     const age=rel?Math.max(1,Math.round((today-new Date(rel))/864e5)):null;const streams=+s.streams||0;
     return {title:s.song,rel,age,streams,listeners:+s.listeners||0,saves:+s.saves||0,
       grow:prev?Math.max(0,streams-(prevBy.get(s.song)||0)):0,perDay:age?streams/age:null}});
-  return {dates,last,prev,list,file:(cur[0]||{}).source_file||""};
+  // 1.000-grens van Spotify: telt per nummer over de afgelopen 12 maanden
+  list.forEach(t=>{
+    const exact=(t.age!=null&&t.age<=365)||(old&&oldBy.has(t.title));
+    t.y12=t.age!=null&&t.age<=365?t.streams:(old&&oldBy.has(t.title)?Math.max(0,t.streams-oldBy.get(t.title)):t.streams);
+    t.y12exact=!!exact;t.below=t.y12<1000;
+    // tempo: bij voorkeur sinds de vorige import, anders gemiddeld sinds release
+    t.perMonth=prev&&days>=14?t.grow/days*30.4:(t.perDay!=null?t.perDay*30.4:null);
+  });
+  return {dates,last,prev,old,list,file:(cur[0]||{}).source_file||""};
 }
 // Titels koppelen: eerst exact, daarna "titel bevat" — elke afrekening hoort bij maximaal één nummer
 function spMatch(list,map){
@@ -1124,10 +1137,22 @@ function spStatus(o){
       :{c:"warn",t:"Loopt achter",w:"Minder dan 70% van de Spotify-streams is afgerekend. Bij een recente release is dat normaal (vertraging). Blijft het laag bij een volgend rapport, dan is het het uitzoeken waard."}}
   if(o.via==="lb")return o.lbS>=o.streams*0.7?{c:"lb",t:"Via label",w:`DJ·World telt ${nf0.format(o.lbS)} streams voor dit nummer (alle platforms samen), Spotify alleen al ${nf0.format(o.streams)}. Dat past bij elkaar.`}
       :{c:"warn",t:"Label telt minder",w:`DJ·World telt ${nf0.format(o.lbS)} streams (alle platforms samen), maar Spotify alleen al ${nf0.format(o.streams)}. Een deel kan vertraging zijn (nieuwste maanden nog niet verwerkt). Blijft het verschil groot, vraag het dan na bij DJ·World.`};
+  if(o.below&&o.via!=="lb")return {c:"mute",t:"Onder 1.000-grens",w:grensTip(o)};
   if(o.via==="sc0")return {c:"warn",t:"Spotify ontbreekt",w:"SoundCloud betaalt wel voor dit nummer (op andere platforms), maar er staat geen Spotify-regel voor in je rapport. Check in Repost of dit nummer via Repost naar Spotify is gegaan."};
   if(o.age!=null&&o.age<90)return {c:"mute",t:"Nog te vroeg",w:"Minder dan 3 maanden oud: het geld is waarschijnlijk nog niet afgerekend."};
   return {c:"warn",t:"Geen afrekening",w:"Streams op Spotify, maar nergens geld gevonden bij SoundCloud of DJ·World. Staat het nummer onder een andere titel in een rapport, of loopt het via een andere distributeur?"};
 }
+function grensTip(o){
+  const need=Math.max(0,1000-o.y12);
+  let t=o.y12exact?`${nf0.format(o.y12)} streams in de afgelopen 12 maanden`:`${nf0.format(o.y12)} streams sinds release (in de afgelopen 12 maanden dus nog minder)`;
+  if(!o.below)return o.y12exact?t+": boven de grens, dit nummer levert Spotify-geld op.":t+". Of het de grens haalt hangt af van de laatste 12 maanden; dat weet de app pas na een import van ongeveer een jaar geleden.";
+  t+=`. Spotify betaalt pas vanaf 1.000 streams per nummer in 12 maanden; nog ${nf0.format(need)} nodig.`;
+  if(o.perMonth!=null){const pm=o.perMonth;
+    t+=pm*12<1000?` Bij het huidige tempo (ongeveer ${nf0.format(pm)} per maand) haalt dit nummer de grens niet vanzelf.`:` Bij het huidige tempo (ongeveer ${nf0.format(pm)} per maand) duurt het nog zo'n ${nf0.format(Math.ceil(need/pm))} maand(en).`}
+  return t;
+}
+function grensCell(o){const w=Math.min(100,o.y12/10);
+  return `<span title="${esc(grensTip(o))}"><span class="grens"><i style="width:${w}%"></i></span>${o.below?"nog "+nf0.format(1000-o.y12):(o.y12exact?'<span class="up">gehaald</span>':"mogelijk")}</span>`}
 function renderSpotify(){
   const clear=()=>["spTop","spGrow","spMoneyStats","spMoneyNote","spMoneyTable","spTable"].forEach(i=>$(i).innerHTML="");
   if(SP.err){$("spStats").innerHTML=`<p class="sub">Spotify-cijfers ophalen lukte niet: ${esc(SP.err)}. Heb je 04_spotify.sql al gedraaid in Supabase?</p>`;clear();return}
@@ -1158,18 +1183,19 @@ function renderSpotify(){
     <div class="ytstat"><span class="k">Spotify-streams</span><span class="v">${nf0.format(streams)}</span><span class="s">volgens Spotify for Artists</span></div>
     <div class="ytstat"><span class="k">Afgerekend via SoundCloud</span><span class="v">${nf0.format(paid)}</span><span class="s">${scStreams?pct(paid/scStreams)+" van de streams bij de "+sc.length+" nummers met Spotify-geld":"geen Spotify-regels gevonden"}</span></div>
     <div class="ytstat"><span class="k">Verdiend via SoundCloud</span><span class="v">${eur(ex(usdT))}</span><span class="s">${paid?eur(ex(usdT)/paid*1000)+" per 1.000 afgerekende streams":""}</span></div>
+    <div class="ytstat"><span class="k">Boven de 1.000-grens</span><span class="v">${nf0.format(M.filter(o=>!o.below).length)} van ${M.length}</span><span class="s">${(()=>{const c=M.filter(o=>o.below).sort((a,b)=>b.y12-a.y12)[0];return c?"dichtstbij: "+esc(c.title)+" (nog "+nf0.format(1000-c.y12)+")":"alle nummers verdienen op Spotify"})()}</span></div>
     <div class="ytstat"><span class="k">Via DJ·World</span><span class="v">${nf0.format(lbSp)}</span><span class="s">Spotify-streams bij ${lb.length} label-nummers · label telt ${nf0.format(lbAll)} streams op alle platforms</span></div>`;
   const partners=[...new Set(SC.map(r=>r.partner).filter(Boolean))].sort();
-  $("spMoneyNote").innerHTML=SC.length&&!SC.some(isSpotify)?`<p class="note" style="margin:14px 0 0;background:var(--warn-soft)">In je SoundCloud-rapport staat geen enkele Spotify-regel. Partners die er wel in staan: ${partners.map(p=>esc(pName(p))).join(", ")}. Nummers die via SoundCloud/Repost lopen krijgen hieronder daarom "Spotify ontbreekt".</p>`:"";
-  $("spMoneyTable").innerHTML=`<thead><tr><th>Nummer</th><th>Via</th><th>Status</th><th class="n">Spotify</th><th class="n" title="SoundCloud: afgerekende Spotify-streams · DJ·World: streams op alle platforms samen">Afgerekend</th><th class="n">% terug</th><th class="n" title="SoundCloud: alleen Spotify · DJ·World: alle platforms samen">Verdiend</th><th>T/m</th></tr></thead><tbody>`+
+  $("spMoneyNote").innerHTML=SC.length&&!SC.some(isSpotify)?`<p class="note" style="margin:14px 0 0;background:var(--warn-soft)">In je SoundCloud-rapport staat geen enkele Spotify-regel. Partners die er wel in staan: ${partners.map(p=>esc(pName(p))).join(", ")}. ${M.every(o=>o.below)?" Dat klopt: geen enkel nummer haalt de 1.000 streams in 12 maanden die Spotify minimaal vereist, dus er valt nog niets af te rekenen.":" Nummers onder de 1.000-grens leveren sowieso niets op; let vooral op nummers met \"Spotify ontbreekt\"."}</p>`:"";
+  $("spMoneyTable").innerHTML=`<thead><tr><th>Nummer</th><th>Via</th><th>Status</th><th class="n">Spotify</th><th title="Spotify betaalt alleen voor nummers met minstens 1.000 streams in de afgelopen 12 maanden">1.000-grens</th><th class="n" title="SoundCloud: afgerekende Spotify-streams · DJ·World: streams op alle platforms samen">Afgerekend</th><th class="n">% terug</th><th class="n" title="SoundCloud: alleen Spotify · DJ·World: alle platforms samen">Verdiend</th><th>T/m</th></tr></thead><tbody>`+
     M.map(o=>{const st=spStatus(o);const via=o.via==="lb"?'<span class="chip lb">DJ·World</span>':o.via?'<span class="chip sc">SoundCloud</span>':"—";
       const af=o.via==="sc"?nf0.format(o.paid):o.via==="lb"?`<span title="alle platforms samen">${nf0.format(o.lbS)}*</span>`:"—";
       const pc=o.via==="sc"&&o.streams?pct(o.paid/o.streams):"—";
       const vd=o.via==="sc"?eur(ex(o.usd)):o.via==="lb"?`<span title="DJ·World, alle platforms samen">${eur(o.lbEur)}*</span>`:"—";
       return `<tr><td><b>${esc(o.title)}</b></td><td>${via}</td><td><span class="chip ${st.c}" title="${esc(st.w)}">${st.t}</span></td>
-      <td class="n">${nf0.format(o.streams)}</td><td class="n">${af}</td><td class="n">${pc}</td><td class="n">${vd}</td>
+      <td class="n">${nf0.format(o.streams)}</td><td style="white-space:nowrap;font-size:13px">${grensCell(o)}</td><td class="n">${af}</td><td class="n">${pc}</td><td class="n">${vd}</td>
       <td class="mono" style="font-size:13px;white-space:nowrap">${o.last?mLabel(o.last):"—"}</td></tr>`}).join("")+
-    `</tbody><tfoot><tr><td>Totaal (${M.length})</td><td></td><td></td><td class="n">${nf0.format(streams)}</td><td></td><td></td><td class="n">${eur(ex(usdT)+lbEur)}</td><td></td></tr></tfoot>`+
+    `</tbody><tfoot><tr><td>Totaal (${M.length})</td><td></td><td></td><td class="n">${nf0.format(streams)}</td><td></td><td></td><td></td><td class="n">${eur(ex(usdT)+lbEur)}</td><td></td></tr></tfoot>`+
     `<caption style="caption-side:bottom;text-align:left;padding-top:8px" class="sub">* DJ·World geeft streams en geld per nummer voor alle platforms samen, niet alleen Spotify.</caption>`;
   // alle nummers
   const hasL=L.some(t=>t.listeners>0),hasS=L.some(t=>t.saves>0);
