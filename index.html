@@ -14,7 +14,7 @@ html{color-scheme:light}body{margin:0}img{max-width:100%}
   --bg:#eef2ec; --surface:#ffffff; --surface-2:#f4f7f2; --ink:#10201a; --ink-2:#44544c; --muted:#6f7d75;
   --line:#dbe3d8; --line-2:#e8eee5; --focus:#0d6b3f;
   --hg:#0c5a36; --hg-deep:#08402a; --hy:#ffd21f; --hy-ink:#1a1400; --on-hg:#e9f3ec; --on-hg-2:#a9cbb6;
-  --sc:#eb6834; --lb:#2a78d6; --sc-soft:#fde6dc; --lb-soft:#e1ecfb;
+  --sc:#eb6834; --lb:#2a78d6; --sc-soft:#fde6dc; --lb-soft:#e1ecfb; --yt:#d6312a; --yt-soft:#fbe2e0;
   --good:#12703f; --good-soft:#dff2e6; --warn:#8a5a00; --warn-soft:#fff3c4;
   --display:"Archivo","Arial Narrow",system-ui,sans-serif;
   --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -24,13 +24,13 @@ html{color-scheme:light}body{margin:0}img{max-width:100%}
   --bg:#0b120e; --surface:#121b16; --surface-2:#18231d; --ink:#eef4ef; --ink-2:#b4c2b9; --muted:#85958b;
   --line:#25332b; --line-2:#1d2923; --focus:#ffd21f;
   --hg:#0d4a2e; --hg-deep:#08301e; --hy:#ffd21f; --hy-ink:#1a1400; --on-hg:#e9f3ec; --on-hg-2:#93b7a1;
-  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42;
+  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42; --yt:#ef5046; --yt-soft:#3b1a18;
   --good:#5cc98c; --good-soft:#132a1d; --warn:#ffd21f; --warn-soft:#2c2710;}}
 :root[data-theme="dark"]{color-scheme:dark;
   --bg:#0b120e; --surface:#121b16; --surface-2:#18231d; --ink:#eef4ef; --ink-2:#b4c2b9; --muted:#85958b;
   --line:#25332b; --line-2:#1d2923; --focus:#ffd21f;
   --hg:#0d4a2e; --hg-deep:#08301e; --hy:#ffd21f; --hy-ink:#1a1400; --on-hg:#e9f3ec; --on-hg-2:#93b7a1;
-  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42;
+  --sc:#d95926; --lb:#3987e5; --sc-soft:#3a2219; --lb-soft:#162a42; --yt:#ef5046; --yt-soft:#3b1a18;
   --good:#5cc98c; --good-soft:#132a1d; --warn:#ffd21f; --warn-soft:#2c2710;}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -83,7 +83,15 @@ button,input,select{font:inherit;color:inherit}
 .seg button:hover{color:var(--ink)}
 .seg button[aria-pressed=true]{background:var(--hg);color:#fff}
 .dot{width:9px;height:9px;border-radius:3px;display:inline-block;flex:none}
-.dot.sc{background:var(--sc)}.dot.lb{background:var(--lb)}
+.dot.sc{background:var(--sc)}.dot.lb{background:var(--lb)}.dot.yt{background:var(--yt)}
+.chip.yt{background:var(--yt-soft);color:var(--ink)}
+.ytstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.ytstat{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px}
+.ytstat .k{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ytstat .v{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums;font-stretch:75%;font-variation-settings:"wdth" 75}
+.ytstat .s{font-size:12.5px;color:var(--muted)}
+.up{color:var(--good);font-weight:700}
+td a{color:inherit;text-decoration-color:var(--line)}td a:hover{text-decoration-color:var(--yt)}
 .spacer{flex:1}
 .btn{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 12px;min-height:38px;cursor:pointer;font-weight:600;font-size:14px}
 .btn:hover{border-color:var(--hg)}
@@ -254,6 +262,7 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
     <button role="tab" data-tab="nummers" aria-selected="false">Per nummer</button>
     <button role="tab" data-tab="bronnen" aria-selected="false">Per bron</button>
     <button role="tab" data-tab="landen" aria-selected="false">Per land</button>
+    <button role="tab" data-tab="youtube" aria-selected="false">YouTube</button>
     <button role="tab" data-tab="kansen" aria-selected="false">Waar zit nog wat</button>
   </nav>
 
@@ -287,6 +296,27 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
 
   <section class="panel" id="p-landen" hidden>
     <div class="card"><h2>Per land</h2><p class="sub">Alleen SoundCloud-data; het label geeft geen landen door</p><div class="bars" id="countryBars"></div></div>
+  </section>
+
+  <section class="panel" id="p-youtube" hidden>
+    <div class="card">
+      <div class="cardhead"><div><h2><i class="dot yt"></i> YouTube</h2><p class="sub" id="ytSub">Openbare cijfers, elke nacht automatisch bijgewerkt. De filters hierboven gelden hier niet.</p></div>
+        <button class="btn" id="ytRefresh" type="button">Nu verversen</button></div>
+      <div class="ytstats" id="ytStats"></div>
+    </div>
+    <div class="card">
+      <div class="cardhead"><div><h2>Erbij per dag</h2><p class="sub" id="ytChartSub">Hoeveel weergaven er per dag bij kwamen, alle tracks samen</p></div>
+        <div class="legend"><span><i class="dot yt"></i>Nieuwe weergaven</span></div></div>
+      <div class="chart" id="ytChart"></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Meest bekeken</h2><p class="sub">Totaal aantal weergaven, zelfde titels samengeteld</p><div class="bars" id="ytTop"></div></div>
+      <div class="card"><h2>Groeiers</h2><p class="sub" id="ytGrowSub">Weergaven erbij in de laatste 7 dagen</p><div class="bars" id="ytGrow"></div></div>
+    </div>
+    <div class="card">
+      <div class="cardhead"><div><h2>Alle tracks en video's</h2><p class="sub">Klik op een titel om hem op YouTube te openen</p></div></div>
+      <div class="tablewrap"><table id="ytTable"></table></div>
+    </div>
   </section>
 
   <section class="panel" id="p-kansen" hidden>
@@ -561,6 +591,7 @@ function render(){
   if(state.tab==="bronnen")renderSources(d);
   if(state.tab==="landen")renderCountries(d);
   if(state.tab==="kansen")renderInsights(d);
+  if(state.tab==="youtube")renderYouTube();
   $("srcInfo").textContent=`Uit Supabase: ${nf0.format(SC.length)} SoundCloud-regels${LAST_IMPORT?" (laatste import: "+LAST_IMPORT+")":""} · DJ·World-overzicht ${LABEL.generated?LABEL.generated:"nog niet ingeladen"}.`;
 }
 
@@ -579,7 +610,7 @@ function fillSelects(){
 }
 function syncSeg(id,val){$(id).querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===val))}
 function setTab(t){state.tab=t;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
-  ["overzicht","nummers","bronnen","landen","kansen"].forEach(x=>$("p-"+x).hidden=x!==t);saveState();render()}
+  ["overzicht","nummers","bronnen","landen","youtube","kansen"].forEach(x=>$("p-"+x).hidden=x!==t);saveState();render()}
 
 $("fFrom").addEventListener("change",e=>{state.from=e.target.value;if(state.to<state.from){state.to=state.from;$("fTo").value=state.to}render()});
 $("fTo").addEventListener("change",e=>{state.to=e.target.value;if(state.from>state.to){state.from=state.to;$("fFrom").value=state.from}render()});
@@ -624,7 +655,7 @@ $("fFile").addEventListener("change",async e=>{
 let msgT;function showMsg(t,good,sticky){clearTimeout(msgT);const n=$("notes");n.innerHTML=esc(t);n.hidden=false;n.style.background=good?"var(--good-soft)":"var(--warn-soft)";if(!sticky)msgT=setTimeout(()=>{n.style.background="";renderNotes()},good?6000:12000)}
 
 /* init */
-let rsz;addEventListener("resize",()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(state.tab==="overzicht")renderChart(compute())},150)});
+let rsz;addEventListener("resize",()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(state.tab==="overzicht")renderChart(compute());if(state.tab==="youtube")renderYouTube()},150)});
 
 /* ---------- DJ·World totaaloverzicht (PDF) uitlezen ---------- */
 async function pdfLines(pdfjs,data){
@@ -713,6 +744,96 @@ $("fPdf").addEventListener("change",async e=>{
   }catch(err){showMsg("PDF inladen lukte niet: "+err.message)}
 });
 
+/* ---------- YouTube ---------- */
+let YT={videos:[],snaps:[],own:[],err:null};
+async function loadYT(){
+  try{
+    const since=new Date(Date.now()-400*864e5).toISOString().slice(0,10);
+    const [cfg,vids]=await Promise.all([
+      sb.from("yt_config").select("channel_ids"),
+      sb.from("yt_videos").select("video_id,title,channel_id,published_at")]);
+    if(cfg.error)throw cfg.error;if(vids.error)throw vids.error;
+    let snaps=[],from=0;const size=1000;
+    for(;;){const {data,error}=await sb.from("yt_snapshots").select("video_id,snap_date,views,likes,comments")
+      .gte("snap_date",since).order("snap_date").order("video_id").range(from,from+size-1);
+      if(error)throw error;snaps=snaps.concat(data);if(data.length<size)break;from+=size}
+    YT={videos:vids.data,snaps,own:(cfg.data[0]||{}).channel_ids||[],err:null};
+  }catch(e){YT={videos:[],snaps:[],own:[],err:e.message}}
+}
+function dLabel(d,long){const[y,m,dd]=d.split("-");return long?(+dd)+" "+MONTHS[+m-1]+" "+y:(+dd)+" "+MONTHS[+m-1]}
+function ytCompute(){
+  const dates=[...new Set(YT.snaps.map(s=>s.snap_date))].sort();
+  const last=dates[dates.length-1];
+  const cut=last?new Date(new Date(last).getTime()-7*864e5).toISOString().slice(0,10):null;
+  const baseCands=dates.filter(d=>d<=cut);
+  const base=baseCands.length?baseCands[baseCands.length-1]:dates[0];
+  const by=new Map();YT.snaps.forEach(s=>{let m=by.get(s.video_id);if(!m){m={};by.set(s.video_id,m)}m[s.snap_date]=s});
+  const vids=YT.videos.map(v=>{const m=by.get(v.video_id)||{};const cur=m[last];
+    const ds=Object.keys(m).sort();const b=m[base]||m[ds.find(d=>d>=base)]||cur;
+    return {id:v.video_id,title:v.title,own:YT.own.includes(v.channel_id),pub:v.published_at?String(v.published_at).slice(0,10):"",
+      views:cur?+cur.views:0,likes:cur?+cur.likes:0,comments:cur?+cur.comments:0,grow:cur&&b?(+cur.views)-(+b.views):0}}).filter(v=>v.views||v.pub);
+  const daily=dates.map((d,i)=>{const tot=YT.snaps.filter(s=>s.snap_date===d).reduce((a,s)=>a+(+s.views),0);return {d,tot}});
+  daily.forEach((o,i)=>o.add=i?Math.max(0,o.tot-daily[i-1].tot):null);
+  const groups=new Map();vids.forEach(v=>{const k=v.title.toLowerCase().trim();let g=groups.get(k);if(!g){g={title:v.title,views:0,grow:0,n:0};groups.set(k,g)}g.views+=v.views;g.grow+=v.grow;g.n++});
+  return {dates,last,base,vids,daily,groups:[...groups.values()],multiDay:dates.length>1};
+}
+function renderYouTube(){
+  if(YT.err){$("ytStats").innerHTML=`<p class="sub">YouTube-cijfers ophalen lukte niet: ${esc(YT.err)}</p>`;return}
+  const y=ytCompute();
+  if(!y.last){$("ytStats").innerHTML='<p class="sub">Nog geen metingen. Klik op "Nu verversen".</p>';$("ytChart").innerHTML="";$("ytTop").innerHTML="";$("ytGrow").innerHTML="";$("ytTable").innerHTML="";return}
+  const views=y.vids.reduce((a,v)=>a+v.views,0),likes=y.vids.reduce((a,v)=>a+v.likes,0),grow=y.vids.reduce((a,v)=>a+v.grow,0);
+  const days=Math.round((new Date(y.last)-new Date(y.base))/864e5);
+  const tracks=y.vids.filter(v=>!v.own).length, own=y.vids.length-tracks;
+  const best=[...y.groups].sort((a,b)=>b.views-a.views)[0];
+  $("ytSub").textContent=`Openbare cijfers, elke nacht automatisch bijgewerkt · laatste meting ${dLabel(y.last,1)}. De filters hierboven gelden hier niet.`;
+  $("ytStats").innerHTML=`
+    <div class="ytstat"><span class="k">Weergaven totaal</span><span class="v">${nf0.format(views)}</span><span class="s">${y.vids.length} tracks en video's</span></div>
+    <div class="ytstat"><span class="k">Erbij ${y.multiDay?(days>=7?"laatste 7 dagen":"sinds "+dLabel(y.base)):""}</span><span class="v">${y.multiDay?"+"+nf0.format(grow):"—"}</span><span class="s">${y.multiDay?(days?nf0.format(grow/days)+" per dag gemiddeld":""):"vanaf morgen te zien"}</span></div>
+    <div class="ytstat"><span class="k">Best bekeken</span><span class="v" style="font-size:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${best?esc(best.title):""}">${best?esc(best.title):"—"}</span><span class="s">${best?nf0.format(best.views)+" weergaven":""}</span></div>
+    <div class="ytstat"><span class="k">Likes</span><span class="v">${nf0.format(likes)}</span><span class="s">${tracks} tracks · ${own} eigen video${own===1?"":"'s"}</span></div>`;
+  // grafiek: erbij per dag
+  const pts=y.daily.filter(o=>o.add!=null);
+  if(pts.length<1){$("ytChart").innerHTML='<p class="sub" style="margin:0">Na de tweede meting (vannacht) zie je hier per dag hoeveel weergaven erbij kwamen.</p>'}
+  else{
+    const W=Math.max(300,Math.round($("ytChart").clientWidth||1000)),H=W<600?200:240,ml=46,mr=8,mt=12,mb=30,iw=W-ml-mr,ih=H-mt-mb;
+    const n=pts.length,max=niceMax(Math.max(1,...pts.map(o=>o.add))),yy=v=>mt+ih-v/max*ih,bw=iw/n,bar=Math.max(2,Math.min(36,bw*0.66));
+    let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Nieuwe YouTube-weergaven per dag">`;
+    for(let i=0;i<=4;i++){const v=max*i/4,t=yy(v);s+=`<line class="${i?"grid":"base"}" x1="${ml}" x2="${W-mr}" y1="${t}" y2="${t}"/><text x="${ml-8}" y="${t+4}" text-anchor="end">${v>=10||Number.isInteger(v)?nf0.format(v):nf2.format(v)}</text>`}
+    const every=Math.ceil(n/(W<600?6:12));
+    pts.forEach((o,i)=>{const x=ml+bw*i+(bw-bar)/2,h=o.add/max*ih;
+      if(h>0)s+=`<path fill="var(--yt)" d="${roundTop(x,yy(o.add),bar,h,Math.min(4,h))}"/>`;
+      if(i%every===0||i===n-1)s+=`<text x="${ml+bw*i+bw/2}" y="${H-10}" text-anchor="middle">${dLabel(o.d)}</text>`;
+      s+=`<rect class="hit" data-i="${i}" x="${ml+bw*i}" y="${mt}" width="${bw}" height="${ih}"/>`});
+    $("ytChart").innerHTML=s+"</svg>";
+    $("ytChart").querySelectorAll(".hit").forEach(r=>{r.addEventListener("mousemove",e=>{const o=pts[+r.dataset.i];
+      showTip(e,`<div class="t">${dLabel(o.d,1)}</div><div class="r"><span><i class="dot yt"></i>Erbij</span><b class="num">+${nf0.format(o.add)}</b></div><div class="r"><span>Totaal</span><b class="num">${nf0.format(o.tot)}</b></div>`)});
+      r.addEventListener("mouseleave",hideTip)});
+  }
+  // top en groeiers
+  const top=[...y.groups].sort((a,b)=>b.views-a.views).slice(0,10),mt2=top[0]?top[0].views:0;
+  $("ytTop").innerHTML=top.map((g,i)=>bar(g.title,[{v:g.views,c:"yt"}],mt2,nf0.format(g.views),g.n>1?`${g.title}: ${g.n} versies samen`:g.title,i+1)).join("");
+  const gr=[...y.groups].filter(g=>g.grow>0).sort((a,b)=>b.grow-a.grow).slice(0,10),mg=gr[0]?gr[0].grow:0;
+  $("ytGrowSub").textContent=y.multiDay?(days>=7?"Weergaven erbij in de laatste 7 dagen":`Weergaven erbij sinds ${dLabel(y.base,1)}`):"Weergaven erbij, per track";
+  $("ytGrow").innerHTML=!y.multiDay?'<p class="sub">Vanaf de tweede meting (vannacht) zie je hier welke tracks groeien.</p>':gr.length?gr.map((g,i)=>bar(g.title,[{v:g.grow,c:"yt"}],mg,"+"+nf0.format(g.grow),null,i+1)).join(""):'<p class="sub">Nog geen nieuwe weergaven in deze periode.</p>';
+  // tabel
+  const list=[...y.vids].sort((a,b)=>b.views-a.views);
+  $("ytTable").innerHTML=`<thead><tr><th>Titel</th><th>Soort</th><th>Uitgebracht</th><th class="n">Weergaven</th><th class="n">${y.multiDay?"Erbij":"—"}</th><th class="n">Likes</th><th class="n">Reacties</th></tr></thead><tbody>`+
+    list.map(v=>`<tr><td><a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener"><b>${esc(v.title)}</b></a></td>
+      <td>${v.own?'<span class="chip mute">Eigen video</span>':'<span class="chip yt">Track</span>'}</td>
+      <td class="mono" style="font-size:13px;white-space:nowrap">${v.pub?dLabel(v.pub,1):"—"}</td>
+      <td class="n"><b>${nf0.format(v.views)}</b></td><td class="n">${y.multiDay?(v.grow>0?`<span class="up">+${nf0.format(v.grow)}</span>`:"0"):"—"}</td>
+      <td class="n">${nf0.format(v.likes)}</td><td class="n">${nf0.format(v.comments)}</td></tr>`).join("")+
+    `</tbody><tfoot><tr><td>Totaal (${list.length})</td><td></td><td></td><td class="n">${nf0.format(views)}</td><td class="n">${y.multiDay?"+"+nf0.format(grow):""}</td><td class="n">${nf0.format(likes)}</td><td class="n">${nf0.format(list.reduce((a,v)=>a+v.comments,0))}</td></tr></tfoot>`;
+}
+$("ytRefresh").addEventListener("click",async()=>{
+  const b=$("ytRefresh");b.disabled=true;b.textContent="Bezig…";
+  const {data,error}=await sb.rpc("yt_refresh");
+  b.disabled=false;b.textContent="Nu verversen";
+  if(error){showMsg("Verversen lukte niet: "+error.message);return}
+  await loadYT();renderYouTube();
+  showMsg(`YouTube bijgewerkt: ${data.videos} tracks en video's gemeten.${data.fouten&&data.fouten.length?" Let op: "+data.fouten.join("; "):""}`,!(data.fouten&&data.fouten.length));
+});
+
 /* ---------- Supabase ---------- */
 const CFG=window.MI_CONFIG||{};
 const configured=CFG.supabaseUrl&&/^https:\/\//.test(CFG.supabaseUrl)&&CFG.supabaseKey&&!/PLAK/.test(CFG.supabaseKey);
@@ -737,6 +858,7 @@ async function loadData(){
   LABEL={periods:lp.map(p=>({m:String(p.period_month).slice(0,7),name:p.name,gross:+p.gross,agg:+p.aggregator,djw:+p.djworld,net:+p.net,status:p.status||""})).sort((a,b)=>a.m<b.m?-1:1),
     tracks:lt.map(x=>({t:x.track,v:x.version||"",a:x.artist||"",sc:+x.stream_count||0,dc:+x.download_count||0,streams:+x.streams,downloads:+x.downloads,gross:+x.gross,net:+x.net})),
     generated:s?new Date(s.statement_date).toLocaleDateString("nl-NL"):null,paidOut:s?+s.paid_out:0,toBook:s?+s.to_book:0,outside:s?+s.outside_tool:0};
+  await loadYT();
   fillSelects();setTab(state.tab);
   if(!SC.length&&!LABEL.periods.length)showMsg("Je database is nog leeg. Klik op 'SoundCloud-CSV' of 'Label-PDF' en kies je rapport.",false,true);
 }
