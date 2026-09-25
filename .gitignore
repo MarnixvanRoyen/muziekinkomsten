@@ -1,0 +1,5 @@
+# Je echte inkomstenbestanden horen NIET op GitHub (die repo is openbaar)
+*.csv
+*.pdf
+*.xlsx
+.DS_Store
