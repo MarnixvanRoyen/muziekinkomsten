@@ -314,6 +314,13 @@ footer .sig{font-family:var(--display);font-weight:800;text-transform:uppercase;
       <div class="card"><h2>Groeiers</h2><p class="sub" id="ytGrowSub">Weergaven erbij in de laatste 7 dagen</p><div class="bars" id="ytGrow"></div></div>
     </div>
     <div class="card">
+      <div class="cardhead"><div><h2>YouTube vs. SoundCloud-afrekening</h2><p class="sub" id="cmpSub">Weergaven op YouTube naast wat SoundCloud daarvoor afrekent</p></div></div>
+      <div class="ytstats" id="cmpStats"></div>
+      <div class="tablewrap" style="margin-top:14px"><table id="cmpTable"></table></div>
+      <p class="sub" style="margin:12px 0 0">Waarom dit nooit 1-op-1 klopt: YouTube telt <b>alle</b> weergaven van vandaag; SoundCloud rekent alleen weergaven af waar YouTube voor betaalde (reclame of Premium), en dat 2–3 maanden later. Wijs met je muis een label aan voor uitleg.<br>
+      <span class="chip mute">Normaal</span> 10–100% komt terug · <span class="chip warn">Weinig terug</span> minder dan 10% · <span class="chip warn">Nog niets afgerekend</span> wel weergaven, geen geld · <span class="chip good">Meer dan je kanaal</span> ook gebruikt in video's van anderen · <span class="chip lb">Alleen elders</span> geld, maar geen video op je kanaal</p>
+    </div>
+    <div class="card">
       <div class="cardhead"><div><h2>Alle tracks en video's</h2><p class="sub">Klik op een titel om hem op YouTube te openen</p></div></div>
       <div class="tablewrap"><table id="ytTable"></table></div>
     </div>
@@ -780,7 +787,7 @@ function ytCompute(){
 function renderYouTube(){
   if(YT.err){$("ytStats").innerHTML=`<p class="sub">YouTube-cijfers ophalen lukte niet: ${esc(YT.err)}</p>`;return}
   const y=ytCompute();
-  if(!y.last){$("ytStats").innerHTML='<p class="sub">Nog geen metingen. Klik op "Nu verversen".</p>';$("ytChart").innerHTML="";$("ytTop").innerHTML="";$("ytGrow").innerHTML="";$("ytTable").innerHTML="";return}
+  if(!y.last){$("ytStats").innerHTML='<p class="sub">Nog geen metingen. Klik op "Nu verversen".</p>';$("ytChart").innerHTML="";$("ytTop").innerHTML="";$("ytGrow").innerHTML="";$("ytTable").innerHTML="";$("cmpStats").innerHTML="";$("cmpTable").innerHTML="";return}
   const views=y.vids.reduce((a,v)=>a+v.views,0),likes=y.vids.reduce((a,v)=>a+v.likes,0),grow=y.vids.reduce((a,v)=>a+v.grow,0);
   const days=Math.round((new Date(y.last)-new Date(y.base))/864e5);
   const tracks=y.vids.filter(v=>!v.own).length, own=y.vids.length-tracks;
@@ -824,6 +831,53 @@ function renderYouTube(){
       <td class="n"><b>${nf0.format(v.views)}</b></td><td class="n">${y.multiDay?(v.grow>0?`<span class="up">+${nf0.format(v.grow)}</span>`:"0"):"—"}</td>
       <td class="n">${nf0.format(v.likes)}</td><td class="n">${nf0.format(v.comments)}</td></tr>`).join("")+
     `</tbody><tfoot><tr><td>Totaal (${list.length})</td><td></td><td></td><td class="n">${nf0.format(views)}</td><td class="n">${y.multiDay?"+"+nf0.format(grow):""}</td><td class="n">${nf0.format(likes)}</td><td class="n">${nf0.format(list.reduce((a,v)=>a+v.comments,0))}</td></tr></tfoot>`;
+  renderYtCompare(y);
+}
+/* ---------- YouTube vs. SoundCloud-afrekening ---------- */
+// Titel -> sleutel: kleine letters, zonder (Original Mix)/[..], zonder leestekens. Spaties eromheen = hele woorden matchen.
+function tKey(s){return " "+String(s||"").toLowerCase().replace(/\(.*?\)|\[.*?\]/g," ").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim()+" "}
+function ytCompare(y){
+  const isYT=r=>/YOUTUBE/.test(r.partner)||/^SRAV_/.test(r.type);
+  const art=r=>/ART_TRACK/.test(r.type)||(r.partner==="YOUTUBE_ART_TRACK"&&!/_SR$/.test(r.type));
+  const map=new Map();
+  SC.filter(isYT).forEach(r=>{const k=tKey(r.track);if(!k.trim())return;
+    let o=map.get(k);if(!o){o={title:r.track.replace(/\s*[\(\[].*$/,"")||r.track,paid:0,other:0,usd:0,last:"",views:0,nv:0};map.set(k,o)}
+    o.paid+=r.units;if(!art(r))o.other+=r.units;o.usd+=r.usd;if(r.m>o.last)o.last=r.m});
+  const keys=[...map.keys()].sort((a,b)=>b.length-a.length); // langste eerst: "deep summer soul" gaat voor "soul"
+  const loose=new Map();
+  y.vids.forEach(v=>{const vk=tKey(v.title);const k=keys.find(k=>vk.includes(k));
+    if(k){const o=map.get(k);o.views+=v.views;o.nv++;return}
+    let o=loose.get(vk);if(!o){o={title:v.title,paid:0,other:0,usd:0,last:"",views:0,nv:0};loose.set(vk,o)}o.views+=v.views;o.nv++});
+  return [...map.values(),...loose.values()];
+}
+function cmpStatus(o){
+  if(!o.paid)return {c:"warn",t:"Nog niets afgerekend",w:"Wel weergaven, nog geen geld via SoundCloud. Nieuw nummer? Dan komt het meestal na 2–3 maanden. Zo niet: check of dit nummer via SoundCloud/Repost wordt verspreid (en dus Content ID heeft)."};
+  if(!o.views)return {c:"lb",t:"Alleen elders",w:"SoundCloud rekent YouTube-weergaven af, maar er staat geen video met deze titel op je kanaal. Waarschijnlijk gebruiken anderen dit nummer in hun video (Content ID), of de titel wijkt af."};
+  const r=o.paid/o.views;
+  if(r>1)return {c:"good",t:"Meer dan je kanaal",w:"Er wordt meer afgerekend dan je kanaal aan weergaven laat zien: het nummer wordt ook in video's van anderen gebruikt (Content ID). Goed teken!"};
+  if(r<0.1&&o.views>=50)return {c:"warn",t:"Weinig terug",w:"Minder dan 10% van de weergaven komt terug in de afrekening. Kan komen door recente groei (vertraging), veel weergaven zonder reclame, of een eigen video die niet geclaimd wordt."};
+  return {c:"mute",t:"Normaal",w:"Een deel van de weergaven levert geld op: dat is normaal, want niet elke weergave heeft reclame of Premium."};
+}
+function renderYtCompare(y){
+  const rows=ytCompare(y).filter(o=>o.views||o.paid).sort((a,b)=>b.views-a.views||b.paid-a.paid);
+  const views=rows.reduce((a,o)=>a+o.views,0),paid=rows.reduce((a,o)=>a+o.paid,0),other=rows.reduce((a,o)=>a+o.other,0),usdT=rows.reduce((a,o)=>a+o.usd,0);
+  const last=rows.reduce((a,o)=>o.last>a?o.last:a,"");
+  if(!paid){$("cmpStats").innerHTML='<p class="sub">Nog geen YouTube-regels in je SoundCloud-rapport gevonden. Laad een nieuwere SoundCloud-CSV in.</p>';$("cmpTable").innerHTML="";return}
+  $("cmpSub").textContent=`YouTube-weergaven op ${dLabel(y.last,1)} naast alles wat SoundCloud t/m ${mLabel(last,1)} voor YouTube heeft afgerekend. De filters hierboven gelden hier niet.`;
+  $("cmpStats").innerHTML=`
+    <div class="ytstat"><span class="k">Weergaven nu</span><span class="v">${nf0.format(views)}</span><span class="s">openbaar, op je kanaal</span></div>
+    <div class="ytstat"><span class="k">Afgerekend</span><span class="v">${nf0.format(paid)}</span><span class="s">${views?pct(paid/views)+" van de weergaven":""}${other?` · ${nf0.format(other)} via anderen`:""}</span></div>
+    <div class="ytstat"><span class="k">Verdiend via YouTube</span><span class="v">${eur(ex(usdT))}</span><span class="s">t/m ${mLabel(last,1)}</span></div>
+    <div class="ytstat"><span class="k">Per 1.000 weergaven</span><span class="v">${views?eur(ex(usdT)/views*1000):"—"}</span><span class="s">wat een weergave je ongeveer oplevert</span></div>`;
+  $("cmpTable").innerHTML=`<thead><tr><th>Nummer</th><th>Status</th><th class="n">YouTube</th><th class="n">Afgerekend</th><th class="n" title="Afgerekend via video's van anderen (Content ID)">Via anderen</th><th class="n">% terug</th><th class="n">Verdiend</th><th class="n" title="Verdiend per 1.000 afgerekende weergaven">€/1.000</th><th>T/m</th></tr></thead><tbody>`+
+    rows.map(o=>{const st=cmpStatus(o);return `<tr><td><b>${esc(o.title)}</b>${o.nv>1?` <span class="sub" style="font-size:12px">(${o.nv} video's)</span>`:""}</td>
+      <td><span class="chip ${st.c}" title="${esc(st.w)}">${st.t}</span></td>
+      <td class="n">${o.views?nf0.format(o.views):"—"}</td><td class="n">${o.paid?nf0.format(o.paid):"—"}</td>
+      <td class="n">${o.other?nf0.format(o.other):"—"}</td>
+      <td class="n">${o.views&&o.paid?pct(o.paid/o.views):"—"}</td>
+      <td class="n">${o.usd?eur(ex(o.usd)):"—"}</td><td class="n">${o.paid>=25?eur(ex(o.usd)/o.paid*1000):"—"}</td>
+      <td class="mono" style="font-size:13px;white-space:nowrap">${o.last?mLabel(o.last):"—"}</td></tr>`}).join("")+
+    `</tbody><tfoot><tr><td>Totaal (${rows.length})</td><td></td><td class="n">${nf0.format(views)}</td><td class="n">${nf0.format(paid)}</td><td class="n">${nf0.format(other)}</td><td class="n">${views?pct(paid/views):""}</td><td class="n">${eur(ex(usdT))}</td><td class="n">${paid?eur(ex(usdT)/paid*1000):""}</td><td></td></tr></tfoot>`;
 }
 $("ytRefresh").addEventListener("click",async()=>{
   const b=$("ytRefresh");b.disabled=true;b.textContent="Bezig…";
